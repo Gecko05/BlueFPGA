@@ -94,7 +94,7 @@ The RUN flipflop enables and starts the clock. If the STATE is FETCH, the machin
 
 
 
-![Screenshot from 2020-07-18 13-10-14.png](_resources/aeb7d0061ca24aed8aa7908bc7fefc36.png)
+![Screenshot from 2020-07-18 13-10-14.png](resources/aeb7d0061ca24aed8aa7908bc7fefc36.png)
 
 
 
@@ -117,7 +117,7 @@ The RUN flipflop enables and starts the clock. If the STATE is FETCH, the machin
 
 
 
-![Screenshot from 2020-07-18 10-41-16.png](/_resources/781eee6820b04eca905be1bcdc328cd0.png)
+![Screenshot from 2020-07-18 10-41-16.png](resources/781eee6820b04eca905be1bcdc328cd0.png)
 
 
 
