@@ -2,13 +2,13 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date:    15:51:04 07/18/2020 
+-- Create Date:    11:38:57 07/19/2020 
 -- Design Name: 
 -- Module Name:    system - Behavioral 
 -- Project Name: 
 -- Target Devices: 
 -- Tool versions: 
--- Description: 
+-- Description: Implementation of the main interface for BLUE
 --
 -- Dependencies: 
 --
@@ -29,43 +29,38 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity clockCycle is
-	Port (
+entity system is
+	Port(
 		CLK_100MHz : in STD_LOGIC;
-		o_CP : out STD_LOGIC_VECTOR(0 TO 7)
+		i_PB : in STD_LOGIC_VECTOR(0 TO 1);
+		o_LED : out STD_LOGIC_VECTOR(0 TO 7)
 	);
-end clockCycle;
+end system;
 
-architecture Behavioral of clockCycle is
--- Minor cycle freq is 50Mhz, Major cycle is 50/8MHz
-	constant CLK_50MHz : natural := 2;
-	signal CLK_CNT : natural range 0 to CLK_50MHz;
-	signal CLK_PULSE : STD_LOGIC := '0';
-	signal CLK_PULSE_CNT : natural range 0 to 7;
-	constant CLK_OUTPUTS : natural := 8;
+architecture rtl of system is
+    
+	COMPONENT clockSystem
+	PORT(
+		i_CLK_100MHz : IN std_logic;
+		i_START : IN std_logic;
+		i_STOP : IN std_logic;          
+		o_CP : OUT std_logic_vector(0 to 7)
+		);
+	END COMPONENT;
+	
+	signal PB0 : STD_LOGIC;
+	signal PB1 : STD_LOGIC;
 begin
--- Main loop for generating the clock pulse signal
-	clockLoop : process (CLK_100MHz) begin
-		if rising_edge(CLK_100MHz) then
-			if CLK_CNT >= CLK_50MHz - 1 then
-				CLK_PULSE <= not CLK_PULSE;
-				CLK_CNT <= 0;
-			else
-				CLK_CNT <= CLK_CNT + 1;
-			end if;
-		end if;
-	end process;
--- Main loop for generating clock pulses
-	clockPulses : process (CLK_PULSE) begin
-		if rising_edge(CLK_PULSE) then
-			o_CP <= "00000000";
-			o_CP(CLK_PULSE_CNT) <= '1';
-			if CLK_PULSE_CNT >= CLK_OUTPUTS-1 then
-				CLK_PULSE_CNT <= 0;
-			else
-				CLK_PULSE_CNT <= CLK_PULSE_CNT + 1;
-			end if;
-		end if;
-	end process;
-end Behavioral;
+
+	Inst_clockSystem: clockSystem PORT MAP(
+		i_CLK_100MHz => CLK_100MHz,
+		i_START => PB0,
+		i_STOP => PB1,
+		o_CP => o_LED
+	);
+	
+	PB0 <= not(i_PB(0));
+	PB1 <= not(i_PB(1));
+
+end rtl;
 
