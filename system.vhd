@@ -51,16 +51,16 @@ architecture rtl of system is
 	signal PB0 : STD_LOGIC;
 	signal PB1 : STD_LOGIC;
 begin
-
+-- Clock and power
 	Inst_clockSystem: clockSystem PORT MAP(
 		i_CLK_100MHz => CLK_100MHz,
 		i_START => PB0,
 		i_STOP => PB1,
 		o_CP => o_LED
 	);
-	
+-- Program Counter
 	PB0 <= not(i_PB(0));
 	PB1 <= not(i_PB(1));
-
+	
 end rtl;
 
