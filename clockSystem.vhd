@@ -34,7 +34,8 @@ entity clockSystem is
 		i_CLK_100MHz : in STD_LOGIC;
 		i_START : in STD_LOGIC;
 		i_STOP : in STD_LOGIC;
-		o_CP : out STD_LOGIC_VECTOR(0 TO 7)
+		o_CP : out STD_LOGIC_VECTOR(0 TO 7);
+		o_CLK : out STD_LOGIC
 	);
 end clockSystem;
 
@@ -49,6 +50,7 @@ architecture rtl of clockSystem is
 	signal RUN : STD_LOGIC := '0';
 begin
 -- Main loop for generating the clock pulse signal
+	o_CLK <= CLK_PULSE;
 	clockLoop : process (i_CLK_100MHz, RUN, i_START, i_STOP) begin
 		if rising_edge(i_CLK_100MHz) then
 			if RUN = '1' then

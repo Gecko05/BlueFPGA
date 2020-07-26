@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date:    13:18:11 07/25/2020 
+-- Create Date:    12:27:18 07/19/2020 
 -- Design Name: 
--- Module Name:    InstructionRegister - Behavioral 
+-- Module Name:    bidirBus - Behavioral 
 -- Project Name: 
 -- Target Devices: 
 -- Tool versions: 
@@ -29,24 +29,13 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity InstructionRegister is
-	port(
-		i_Clock : in STD_LOGIC;
-		i_IRBus : in STD_LOGIC_VECTOR(0 TO 15);
-		i_IRTakeIn : in STD_LOGIC;
-		o_IRBus : out STD_LOGIC_VECTOR(0 TO 15)
-	);
-end InstructionRegister;
+entity bidirBus is
+end bidirBus;
 
-architecture rtl of InstructionRegister is
-	signal IRData : STD_LOGIC_VECTOR(0 TO 15);
+architecture Behavioral of bidirBus is
+
 begin
-	IRLoop : process(i_Clock, i_IRTakeIn) begin
-		if rising_edge(i_IRTakeIn) then
-			IRData <= i_IRBus;
-		else
-		end if;
-	end process;
-	o_IRBus <= IRData;
-end rtl;
+
+
+end Behavioral;
 

@@ -39,9 +39,9 @@ entity MemAddrRegister is
 end MemAddrRegister;
 
 architecture rtl of MemAddrRegister is
-	signal IRData : STD_LOGIC_VECTOR(0 TO 11);
+	signal MARData : STD_LOGIC_VECTOR(0 TO 11);
 begin
-	IRLoop : process(i_Clock) begin
+	IRLoop : process(i_Clock, i_MARTakeIn) begin
 		if rising_edge(i_MARTakeIn) then
 			MARData <= i_MARBus;
 		else

@@ -45,7 +45,7 @@ architecture rtl of programCounter is
 	signal PCVal : STD_LOGIC_VECTOR(0 TO 11) := "000000000000";
 	signal PCCounter : natural range 0 to 4095 := 0;
 begin
-	PCLoop : process (i_PCClear,i_PCTakeIn,i_PCInc, i_PCBus, i_Clock) begin
+	PCLoop : process (i_PCClear,i_PCTakeIn,i_PCInc, i_PCBus, i_Clock, PCCounter) begin
 		if rising_edge(i_PCClear) then
 			PCCounter <= 0;
 		elsif rising_edge(i_PCTakeIn) then

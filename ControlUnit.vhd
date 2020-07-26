@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date:    13:18:11 07/25/2020 
+-- Create Date:    13:29:46 07/25/2020 
 -- Design Name: 
--- Module Name:    InstructionRegister - Behavioral 
+-- Module Name:    ControlUnit - Behavioral 
 -- Project Name: 
 -- Target Devices: 
 -- Tool versions: 
@@ -29,24 +29,13 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity InstructionRegister is
-	port(
-		i_Clock : in STD_LOGIC;
-		i_IRBus : in STD_LOGIC_VECTOR(0 TO 15);
-		i_IRTakeIn : in STD_LOGIC;
-		o_IRBus : out STD_LOGIC_VECTOR(0 TO 15)
-	);
-end InstructionRegister;
+entity ControlUnit is
+end ControlUnit;
 
-architecture rtl of InstructionRegister is
-	signal IRData : STD_LOGIC_VECTOR(0 TO 15);
+architecture Behavioral of ControlUnit is
+
 begin
-	IRLoop : process(i_Clock, i_IRTakeIn) begin
-		if rising_edge(i_IRTakeIn) then
-			IRData <= i_IRBus;
-		else
-		end if;
-	end process;
-	o_IRBus <= IRData;
-end rtl;
+
+
+end Behavioral;
 

@@ -38,7 +38,7 @@ entity MemBufferRegister is
 		i_MBRTakeIn : in STD_LOGIC;
 		o_MBRWriteBus : out STD_LOGIC_VECTOR(0 TO 15);
 		o_MBRBus : out STD_LOGIC_VECTOR(0 TO 15);
-		o_MBRWEA : out STD_LOGIC
+		o_MBRWEA : out STD_LOGIC_VECTOR(0 TO 0)
 	);
 end MemBufferRegister;
 
@@ -46,16 +46,16 @@ architecture Behavioral of MemBufferRegister is
 	signal MBRData : STD_LOGIC_VECTOR(0 TO 15);
 begin
 	MBRLoop : process(i_Clock, i_MBRClear, i_MBRTakeIn) begin
-		if rising_edge(i_MBRClear) then -- Clear the buffer value
-			MBRData <= i_MBRReadBus;
-		else 
-		end if;
-		if rising_edge(i_MBRTakeIn) then -- Take in a value from the bus and write it out to the memory
-			MBRData <= i_MBRBus;
-			o_MBRWEA <= '1';
-			o_MBRWriteBus <= MBRData;
-		else
-			o_MBRWEA <= '0';
+		if rising_edge(i_Clock) then
+			if i_MBRClear = '1' then -- Clear the buffer value
+				MBRData <= i_MBRReadBus;
+			elsif i_MBRTakeIn = '1' then -- Take in a value from the bus and write it out to the memory
+				MBRData <= i_MBRBus;
+				o_MBRWEA <= "1";
+				o_MBRWriteBus <= MBRData;
+			else
+				o_MBRWEA <= "0";
+			end if;
 		end if;
 	end process;
 	o_MBRBus <= MBRData;

@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer:
 --
--- Create Date:   12:08:46 07/19/2020
+-- Create Date:   11:16:40 07/26/2020
 -- Design Name:   
--- Module Name:   /home/gecko/14.7/ISE_DS/BLUE/systemTest.vhd
+-- Module Name:   /home/gecko/14.7/ISE_DS/BLUE/SystemTest.vhd
 -- Project Name:  BLUE
 -- Target Device:  
 -- Tool versions:  
@@ -32,29 +32,25 @@ USE ieee.std_logic_1164.ALL;
 -- arithmetic functions with Signed or Unsigned values
 --USE ieee.numeric_std.ALL;
  
-ENTITY systemTest IS
-END systemTest;
+ENTITY SystemTest IS
+END SystemTest;
  
-ARCHITECTURE behavior OF systemTest IS 
+ARCHITECTURE behavior OF SystemTest IS 
  
     -- Component Declaration for the Unit Under Test (UUT)
  
-
-	COMPONENT clockSystem
-	PORT(
-		i_CLK_100MHz : IN std_logic;
-		i_START : IN std_logic;
-		i_STOP : IN std_logic;          
-		o_CP : OUT std_logic_vector(0 to 7);
-		o_CLK : OUT std_logic
-		);
-	END COMPONENT;
+    COMPONENT system
+    PORT(
+         CLK_100MHz : IN  std_logic;
+         i_PB : IN  std_logic_vector(0 to 1);
+         o_LED : OUT  std_logic_vector(0 to 7)
+        );
+    END COMPONENT;
     
 
    --Inputs
    signal CLK_100MHz : std_logic := '0';
    signal i_PB : std_logic_vector(0 to 1) := (others => '0');
-	signal i_
 
  	--Outputs
    signal o_LED : std_logic_vector(0 to 7);
@@ -90,23 +86,10 @@ BEGIN
       wait for CLK_100MHz_period*10;
 
       -- insert stimulus here 
-		-- Due to pullup, signals are inverted
-		-- Turn on
+		i_PB(0) <= '1';
+		wait for 100 ns;
 		i_PB(0) <= '0';
-		i_PB(1) <= '1';
 		wait for 500 ns;
-		-- Turn off
-		i_PB(0) <= '1';
-		i_PB(1) <= '0';
-		wait for 400 ns;
-		-- Both high
-		i_PB(0) <= '0';
-		i_PB(1) <= '0';
-		wait for 400 ns;
-		-- Both low
-		i_PB(0) <= '1';
-		i_PB(1) <= '1';
-		wait for 400 ns;
       wait;
    end process;
 
