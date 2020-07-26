@@ -22,7 +22,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
@@ -36,14 +36,14 @@ entity MemBufferRegister is
 		i_MBRBus : in STD_LOGIC_VECTOR(0 TO 15);
 		i_MBRReadBus : in STD_LOGIC_VECTOR(0 TO 15);
 		i_MBRTakeIn : in STD_LOGIC;
-		o_MBRWriteBus : out STD_LOGIC_VECTOR(0 TO 15);
-		o_MBRBus : out STD_LOGIC_VECTOR(0 TO 15);
-		o_MBRWEA : out STD_LOGIC_VECTOR(0 TO 0)
+		o_MBRWriteBus : out STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0,16));
+		o_MBRBus : out STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0,16));
+		o_MBRWEA : out STD_LOGIC_VECTOR(0 TO 0) := STD_LOGIC_VECTOR(to_unsigned(0,1))
 	);
 end MemBufferRegister;
 
 architecture Behavioral of MemBufferRegister is	
-	signal MBRData : STD_LOGIC_VECTOR(0 TO 15);
+	signal MBRData : STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0,16));
 begin
 	MBRLoop : process(i_Clock, i_MBRClear, i_MBRTakeIn) begin
 		if rising_edge(i_Clock) then

@@ -22,7 +22,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
@@ -34,7 +34,7 @@ entity InstructionRegister is
 		i_Clock : in STD_LOGIC;
 		i_IRBus : in STD_LOGIC_VECTOR(0 TO 15);
 		i_IRTakeIn : in STD_LOGIC;
-		o_IRBus : out STD_LOGIC_VECTOR(0 TO 15)
+		o_IRBus : out STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0, 16))
 	);
 end InstructionRegister;
 

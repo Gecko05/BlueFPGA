@@ -22,7 +22,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
@@ -34,8 +34,8 @@ entity clockSystem is
 		i_CLK_100MHz : in STD_LOGIC;
 		i_START : in STD_LOGIC;
 		i_STOP : in STD_LOGIC;
-		o_CP : out STD_LOGIC_VECTOR(0 TO 7);
-		o_CLK : out STD_LOGIC
+		o_CP : out STD_LOGIC_VECTOR(0 TO 7) := STD_LOGIC_VECTOR(to_unsigned(0,8));
+		o_CLK : out STD_LOGIC := '0'
 	);
 end clockSystem;
 

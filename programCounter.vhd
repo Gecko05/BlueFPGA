@@ -34,7 +34,7 @@ entity programCounter is
 	port (
 		i_Clock : in STD_lOGIC;
 		i_PCBus : in STD_LOGIC_VECTOR(0 TO 11);
-		o_PCBus : out STD_LOGIC_VECTOR(0 TO 11);
+		o_PCBus : out STD_LOGIC_VECTOR(0 TO 11) := STD_LOGIC_VECTOR(to_unsigned(0,12));
 		i_PCInc : in STD_lOGIC;
 		i_PCClear : in STD_LOGIC;
 		i_PCTakeIn : in STD_LOGIC-- signal to take a value from bus?

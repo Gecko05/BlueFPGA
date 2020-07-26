@@ -22,7 +22,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
@@ -34,12 +34,12 @@ entity MemAddrRegister is
 		i_Clock : in STD_LOGIC;
 		i_MARBus : in STD_LOGIC_VECTOR(0 TO 11);
 		i_MARTakeIn : in STD_LOGIC;
-		o_MARBus : out STD_LOGIC_VECTOR(0 TO 11)
+		o_MARBus : out STD_LOGIC_VECTOR(0 TO 11) := STD_LOGIC_VECTOR(to_unsigned(0, 12))
 	);
 end MemAddrRegister;
 
 architecture rtl of MemAddrRegister is
-	signal MARData : STD_LOGIC_VECTOR(0 TO 11);
+	signal MARData : STD_LOGIC_VECTOR(0 TO 11) := std_logic_vector(to_unsigned(0, 12));
 begin
 	IRLoop : process(i_Clock, i_MARTakeIn) begin
 		if rising_edge(i_MARTakeIn) then
