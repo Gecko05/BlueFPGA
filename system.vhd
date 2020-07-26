@@ -45,14 +45,14 @@ architecture rtl of system is
 		i_START : IN std_logic;
 		i_STOP : IN std_logic;          
 		o_CP : OUT std_logic_vector(0 to 7);
-		o_CLK : out STD_LOGIC
+		o_CLK : OUT std_logic
 		);
 	END COMPONENT;
 	
 	signal PB0 : STD_LOGIC;
 	signal PB1 : STD_LOGIC;
-	signal CPU_CLK : STD_LOGIC;
 	signal o_CP : STD_LOGIC_VECTOR(0 TO 7);
+	signal CPU_CLK : STD_LOGIC;
 	
 -- Instruction Register component
 	COMPONENT InstructionRegister
@@ -147,10 +147,10 @@ begin
 		o_CP => o_CP,
 		o_CLK => CPU_CLK
 	);
--- Program Counter
 	PB0 <= not(i_PB(0));
 	PB1 <= not(i_PB(1));
-	
+	o_LED <= o_CP;
+
 -- Instruction register
 	IR: InstructionRegister PORT MAP(
 		i_Clock => CPU_CLK,

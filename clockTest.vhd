@@ -2,15 +2,15 @@
 -- Company: 
 -- Engineer:
 --
--- Create Date:   11:16:40 07/26/2020
+-- Create Date:   12:22:59 07/26/2020
 -- Design Name:   
--- Module Name:   /home/gecko/14.7/ISE_DS/BLUE/SystemTest.vhd
+-- Module Name:   /home/gecko/14.7/ISE_DS/BLUE/clockTest.vhd
 -- Project Name:  BLUE
 -- Target Device:  
 -- Tool versions:  
 -- Description:   
 -- 
--- VHDL Test Bench Created by ISE for module: system
+-- VHDL Test Bench Created by ISE for module: clockSystem
 -- 
 -- Dependencies:
 -- 
@@ -32,48 +32,52 @@ USE ieee.std_logic_1164.ALL;
 -- arithmetic functions with Signed or Unsigned values
 --USE ieee.numeric_std.ALL;
  
-ENTITY SystemTest IS
-END SystemTest;
+ENTITY clockTest IS
+END clockTest;
  
-ARCHITECTURE behavior OF SystemTest IS 
+ARCHITECTURE behavior OF clockTest IS 
  
     -- Component Declaration for the Unit Under Test (UUT)
  
-    COMPONENT system
+    COMPONENT clockSystem
     PORT(
-         CLK_100MHz : IN  std_logic;
-         i_PB : IN  std_logic_vector(0 to 1);
-         o_LED : OUT  std_logic_vector(0 to 7)
+         i_CLK_100MHz : IN  std_logic;
+         i_START : IN  std_logic;
+         i_STOP : IN  std_logic;
+         o_CP : OUT  std_logic_vector(0 to 7)
         );
     END COMPONENT;
     
 
    --Inputs
-   signal CLK_100MHz : std_logic := '0';
-   signal i_PB : std_logic_vector(0 to 1) := (others => '0');
+   signal i_CLK_100MHz : std_logic := '0';
+   signal i_START : std_logic := '0';
+   signal i_STOP : std_logic := '0';
 
  	--Outputs
-   signal o_LED : std_logic_vector(0 to 7);
-
-   -- Clock period definitions
-   constant CLK_100MHz_period : time := 10 ns;
+   signal o_CP : std_logic_vector(0 to 7);
+   -- No clocks detected in port list. Replace <clock> below with 
+   -- appropriate port name 
+ 
+   constant i_CLK_100MHz_period : time := 10 ns;
  
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: system PORT MAP (
-          CLK_100MHz => CLK_100MHz,
-          i_PB => i_PB,
-          o_LED => o_LED
+   uut: clockSystem PORT MAP (
+          i_CLK_100MHz => i_CLK_100MHz,
+          i_START => i_START,
+          i_STOP => i_STOP,
+          o_CP => o_CP
         );
 
    -- Clock process definitions
-   CLK_100MHz_process :process
+   i_CLK_100MHz_process :process
    begin
-		CLK_100MHz <= '0';
-		wait for CLK_100MHz_period/2;
-		CLK_100MHz <= '1';
-		wait for CLK_100MHz_period/2;
+		i_CLK_100MHz <= '0';
+		wait for i_CLK_100MHz_period/2;
+		i_CLK_100MHz <= '1';
+		wait for i_CLK_100MHz_period/2;
    end process;
  
 
@@ -83,14 +87,14 @@ BEGIN
       -- hold reset state for 100 ns.
       wait for 100 ns;	
 
-      wait for CLK_100MHz_period*10;
+      wait for i_CLK_100MHz_period*10;
 
       -- insert stimulus here 
-		-- Turned On
-		i_PB(0) <= '0';
-		i_PB(1) <= '1';
-		wait for 500 ns;
-      wait;
+		i_START <= '1';
+		wait for 100 ns;
+		i_START <= '0';
+		wait for 100 ns;
+      wait;	
    end process;
 
 END;
