@@ -34,6 +34,7 @@ entity clockSystem is
 		i_CLK_100MHz : in STD_LOGIC;
 		i_START : in STD_LOGIC;
 		i_STOP : in STD_LOGIC;
+		i_HALT : in STD_LOGIC;
 		o_CP : out STD_LOGIC_VECTOR(0 TO 7) := STD_LOGIC_VECTOR(to_unsigned(0,8));
 		o_CLK : out STD_LOGIC := '0'
 	);
@@ -67,7 +68,7 @@ begin
 				else
 					CLK_CNT <= CLK_CNT + 1;
 				end if;
-				if i_STOP = '1' then
+				if i_STOP = '1' or i_HALT = '1' then
 					RUN <= '0';
 					o_CP <= "00000000";
 					CLK_CNT <= 0;

@@ -89,7 +89,12 @@ BEGIN
 		-- Turned On
 		i_PB(0) <= '0';
 		i_PB(1) <= '1';
-		wait for 500 ns;
+		wait for 100 ns;
+		i_PB(0) <= '1';
+		i_PB(1) <= '1';
+		wait for 100 ns;
+		i_PB(0) <= '0';
+		i_PB(1) <= '1';
       wait;
    end process;
 

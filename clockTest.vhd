@@ -44,6 +44,7 @@ ARCHITECTURE behavior OF clockTest IS
          i_CLK_100MHz : IN  std_logic;
          i_START : IN  std_logic;
          i_STOP : IN  std_logic;
+			i_HALT : IN std_logic;
          o_CP : OUT  std_logic_vector(0 to 7)
         );
     END COMPONENT;
@@ -53,6 +54,7 @@ ARCHITECTURE behavior OF clockTest IS
    signal i_CLK_100MHz : std_logic := '0';
    signal i_START : std_logic := '0';
    signal i_STOP : std_logic := '0';
+	signal i_HALT : std_logic := '0';
 
  	--Outputs
    signal o_CP : std_logic_vector(0 to 7);

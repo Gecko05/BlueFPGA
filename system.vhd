@@ -22,7 +22,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
@@ -43,12 +43,16 @@ architecture rtl of system is
 	PORT(
 		i_CLK_100MHz : IN std_logic;
 		i_START : IN std_logic;
-		i_STOP : IN std_logic;          
+		i_STOP : IN std_logic;      
+		i_HALT : IN std_logic;
 		o_CP : OUT std_logic_vector(0 to 7);
 		o_CLK : OUT std_logic
 		);
 	END COMPONENT;
 	
+	signal START : STD_LOGIC := '0';
+	signal STOP : STD_LOGIC := '0';
+	signal HALT : STD_LOGIC := '0';
 	signal PB0 : STD_LOGIC;
 	signal PB1 : STD_LOGIC;
 	signal o_CP : STD_LOGIC_VECTOR(0 TO 7);
@@ -137,18 +141,23 @@ architecture rtl of system is
 	signal i_RAMAddr : STD_LOGIC_VECTOR(11 DOWNTO 0);
 	signal i_RAMDin : STD_LOGIC_VECTOR(15 DOWNTO 0);
 	signal o_RAMDout : STD_LOGIC_VECTOR(15 DOWNTO 0);
-
+	
+	-- Control Unit signals
+	signal Instruction : STD_LOGIC_VECTOR(0 TO 3) := "1111";
 begin
 -- Clock and power
 	CLK_Sys: clockSystem PORT MAP(
 		i_CLK_100MHz => CLK_100MHz,
-		i_START => PB0,
-		i_STOP => PB1,
+		i_START => START,
+		i_STOP => STOP,
+		i_HALT => HALT,
 		o_CP => o_CP,
 		o_CLK => CPU_CLK
 	);
 	PB0 <= not(i_PB(0));
 	PB1 <= not(i_PB(1));
+	START <= PB0;
+	STOP <= PB1;
 	o_LED <= o_CP;
 
 -- Instruction register
@@ -203,7 +212,7 @@ begin
 	i_MARBus <= o_PCBus;
 	o_LED <= o_CP;
 	
-	controlLoop : process (o_CP, CPU_CLK) begin
+	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction) begin
 		if o_CP(0) = '1' then
 			i_MARTakeIn <= '0';
 		elsif o_CP(1) = '1' then
@@ -228,6 +237,13 @@ begin
 		else
 		end if;
 		
+		-- Instruction tree
+		Instruction <= o_IRBus(0 TO 3);
+		if Instruction = "0000" then
+			HALT <= '0';
+		elsif Instruction = "0001" then
+			-- Do nothing
+		end if;
 	end process;
 end rtl;
 
