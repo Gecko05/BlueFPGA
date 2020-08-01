@@ -39,7 +39,7 @@ entity InstructionRegister is
 end InstructionRegister;
 
 architecture rtl of InstructionRegister is
-	signal IRData : STD_LOGIC_VECTOR(0 TO 15);
+	signal IRData : STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 begin
 	IRLoop : process(i_Clock, i_IRTakeIn) begin
 		if rising_edge(i_IRTakeIn) then

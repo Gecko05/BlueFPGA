@@ -68,8 +68,8 @@ architecture rtl of system is
 		);
 	END COMPONENT;
 	
-	signal i_IRBus : STD_lOGIC_VECTOR(0 TO 15);
-	signal i_IRTakeIn : STD_LOGIC;
+	signal i_IRBus : STD_lOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal i_IRTakeIn : STD_LOGIC := '0';
 	signal o_IRBus : STD_LOGIC_VECTOR(0 TO 15);
 	
 -- Memory Buffer Register component
@@ -86,10 +86,10 @@ architecture rtl of system is
 		);
 	END COMPONENT;
 	
-	signal i_MBRClear : STD_LOGIC;
-	signal i_MBRBus : STD_LOGIC_VECTOR(0 TO 15);
-	signal i_MBRReadBus : STD_LOGIC_VECTOR(0 TO 15);
-	signal i_MBRTakeIn : STD_LOGIC;
+	signal i_MBRClear : STD_LOGIC := '0';
+	signal i_MBRBus : STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal i_MBRReadBus : STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal i_MBRTakeIn : STD_LOGIC := '0';
 	signal o_MBRWriteBus : STD_LOGIC_VECTOR(0 TO 15);
 	SIGNAL O_MBRBus : STD_LOGIC_VECTOR(0 TO 15);
 	signal o_MBRWea : STD_LOGIC_VECTOR(0 TO 0);
@@ -104,8 +104,8 @@ architecture rtl of system is
 		);
 	END COMPONENT;
 	
-	signal i_MARBus : STD_LOGIC_VECTOR(0 TO 11);
-	signal i_MARTakeIn : STD_LOGIC;
+	signal i_MARBus : STD_LOGIC_VECTOR(0 TO 11) := STD_LOGIC_VECTOR(to_unsigned(0, 12));
+	signal i_MARTakeIn : STD_LOGIC := '0';
 	signal o_MARBus : STD_LOGIC_VECTOR(0 TO 11);
 	
 	-- Program Counter Register component
@@ -120,10 +120,10 @@ architecture rtl of system is
 		);
 	END COMPONENT;
 	
-	signal i_PCBus : STD_LOGIC_VECTOR(0 TO 11);
-	signal i_PCInc : STD_LOGIC;
-	signal i_PCClear : STD_LOGIC;
-	signal i_PCTakeIn : STD_LOGIC;
+	signal i_PCBus : STD_LOGIC_VECTOR(0 TO 11) := STD_LOGIC_VECTOR(to_unsigned(0, 12));
+	signal i_PCInc : STD_LOGIC := '0';
+	signal i_PCClear : STD_LOGIC := '0';
+	signal i_PCTakeIn : STD_LOGIC := '0';
 	signal o_PCBus : STD_LOGIC_VECTOR(0 TO 11);
 	
 	-- RAM Block component
@@ -210,11 +210,13 @@ begin
 	i_MBRReadBus <= o_RAMDout;
 	i_IRBus <= o_MBRBus;
 	i_MARBus <= o_PCBus;
+	--i_PCBus <= o_IRBus(0 TO 11);
 	o_LED <= o_CP;
 	
 	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction) begin
 		if o_CP(0) = '1' then
 			i_MARTakeIn <= '0';
+			i_PCTakeIn <= '0';
 		elsif o_CP(1) = '1' then
 		-- Increment Program Counter
 			i_PCInc <= '1';
@@ -229,21 +231,31 @@ begin
 		elsif o_CP(4) = '1' then
 			i_IRTakeIn <= '0';
 		elsif o_CP(5) = '1' then
-			
+		
 		elsif o_CP(6) = '1' then
-
+		
 		elsif o_CP(7) = '1' then
 			i_MARTakeIn <= '1';
+			i_PCTakeIn <= '0';
 		else
 		end if;
 		
 		-- Instruction tree
-		Instruction <= o_IRBus(0 TO 3);
 		if Instruction = "0000" then
 			HALT <= '0';
 		elsif Instruction = "0001" then
-			-- Do nothing
+			-- ADD
+		elsif Instruction = "1010" then
+			-- JMP
+			if o_CP(5) = '1' then
+				i_PCClear <= '1';
+			elsif o_CP(6) = '1' then
+				i_PCClear <= '0';
+				i_PCBus <= o_IRBus(0 TO 11);
+				i_PCTakeIn <= '1';
+			end if;
 		end if;
 	end process;
+	Instruction <= o_IRBus(12 TO 15);
 end rtl;
 
