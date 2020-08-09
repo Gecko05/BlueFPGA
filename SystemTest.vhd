@@ -86,13 +86,21 @@ BEGIN
       wait for CLK_100MHz_period*10;
 
       -- insert stimulus here 
-		-- Turned On
+		-- Turn ON
 		i_PB(0) <= '0';
 		i_PB(1) <= '1';
 		wait for 100 ns;
 		i_PB(0) <= '1';
 		i_PB(1) <= '1';
 		wait for 100 ns;
+		i_PB(0) <= '0';
+		i_PB(1) <= '1';
+		wait for 100 ns;
+		-- Turn OFF
+		i_PB(0) <= '1';
+		i_PB(1) <= '0';
+		wait for 100 ns;
+		-- Turn ON again
 		i_PB(0) <= '0';
 		i_PB(1) <= '1';
       wait;

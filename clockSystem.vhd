@@ -32,9 +32,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity clockSystem is
 	Port (
 		i_CLK_100MHz : in STD_LOGIC;
-		i_START : in STD_LOGIC;
-		i_STOP : in STD_LOGIC;
-		i_HALT : in STD_LOGIC;
+		i_RUN : in STD_LOGIC;
 		o_CP : out STD_LOGIC_VECTOR(0 TO 7) := STD_LOGIC_VECTOR(to_unsigned(0,8));
 		o_CLK : out STD_LOGIC := '0'
 	);
@@ -47,13 +45,11 @@ architecture rtl of clockSystem is
 	signal CLK_PULSE : STD_LOGIC := '0';
 	signal CLK_PULSE_CNT : natural range 0 to 7;
 	constant CLK_OUTPUTS : natural := 8;
--- Power state flip flop
-	signal RUN : STD_LOGIC := '0';
 begin
 -- Main loop for generating the clock pulse signal
-	clockLoop : process (i_CLK_100MHz, RUN, i_START, i_STOP) begin
+	clockLoop : process (i_CLK_100MHz,i_RUN) begin
 		if rising_edge(i_CLK_100MHz) then
-			if RUN = '1' then
+			if i_RUN = '1' then
 				if CLK_CNT >= CLK_50MHz - 1 then
 					CLK_PULSE <= not CLK_PULSE;
 					CLK_CNT <= 0;
@@ -68,16 +64,10 @@ begin
 				else
 					CLK_CNT <= CLK_CNT + 1;
 				end if;
-				if i_STOP = '1' or i_HALT = '1' then
-					RUN <= '0';
-					o_CP <= "00000000";
-					CLK_CNT <= 0;
-					CLK_PULSE_CNT <= 0;
-				end if;
 			else
-				if i_START = '1' then
-					RUN <= '1';
-				end if;
+				CLK_CNT <= 0;
+				o_CP <= "00000000";
+				CLK_PULSE <= '0';
 			end if;
 		end if;
 	end process;

@@ -41,20 +41,14 @@ architecture rtl of system is
 -- Clock and power component
 	COMPONENT clockSystem
 	PORT(
-		i_CLK_100MHz : IN std_logic;
-		i_START : IN std_logic;
-		i_STOP : IN std_logic;      
-		i_HALT : IN std_logic;
+		i_CLK_100MHz : IN std_logic;		
+		i_RUN : IN std_logic;
 		o_CP : OUT std_logic_vector(0 to 7);
 		o_CLK : OUT std_logic
 		);
 	END COMPONENT;
 	
-	signal START : STD_LOGIC := '0';
-	signal STOP : STD_LOGIC := '0';
-	signal HALT : STD_LOGIC := '0';
-	signal PB0 : STD_LOGIC;
-	signal PB1 : STD_LOGIC;
+	signal r_RUN : STD_LOGIC := '1';
 	signal o_CP : STD_LOGIC_VECTOR(0 TO 7);
 	signal CPU_CLK : STD_LOGIC;
 	
@@ -144,37 +138,34 @@ architecture rtl of system is
 	
 	-- Control Unit signals
 	signal Instruction : STD_LOGIC_VECTOR(0 TO 3) := "1111";
+	-- Buttons
+	signal w_START : STD_LOGIC;
+	signal w_STOP : STD_LOGIC;
 begin
--- Clock and power
+	-- Clock and power
 	CLK_Sys: clockSystem PORT MAP(
 		i_CLK_100MHz => CLK_100MHz,
-		i_START => START,
-		i_STOP => STOP,
-		i_HALT => HALT,
+		i_RUN => r_RUN,
 		o_CP => o_CP,
 		o_CLK => CPU_CLK
 	);
-	PB0 <= not(i_PB(0));
-	PB1 <= not(i_PB(1));
-	START <= PB0;
-	STOP <= PB1;
 	o_LED <= o_CP;
 
--- Instruction register
+	-- Instruction register
 	IR: InstructionRegister PORT MAP(
 		i_Clock => CPU_CLK,
 		i_IRBus => i_IRBus,
 		i_IRTakeIn => i_IRTakeIn,
 		o_IRBus => o_IRBus
 	);
--- Memory Address register
+	-- Memory Address register
 	MAR: MemAddrRegister PORT MAP(
 		i_Clock => CPU_CLK,
 		i_MARBus => i_MARBus,
 		i_MARTakeIn => i_MARTakeIn,
 		o_MARBus => o_MARBus
 	);
--- Memory Buffer register
+	-- Memory Buffer register
 	MBR: MemBufferRegister PORT MAP(
 		i_Clock => CPU_CLK,
 		i_MBRClear => i_MBRClear,
@@ -185,7 +176,7 @@ begin
 		o_MBRBus => o_MBRBus,
 		o_MBRWEA => o_MBRWea
 	);
--- Program Counter register
+	-- Program Counter register
 	PC: programCounter PORT MAP(
 		i_Clock => CPU_CLK,
 		i_PCBus => i_PCBus,
@@ -194,7 +185,7 @@ begin
 		i_PCClear => i_PCClear,
 		i_PCTakeIn => i_PCTakeIn
 	);
--- RAM Block
+	-- RAM Block
 	RAM_Blk : RAMBlock
 	  PORT MAP (
 		 clka => CPU_CLK,
@@ -203,7 +194,7 @@ begin
 		 dina => i_RAMDin,
 		 douta => o_RAMDout
 	  );
--- General connections between components
+	-- General connections between components
 	i_RAMWea <= o_MBRWea;
 	i_RAMDin <= o_MBRWriteBus;
 	i_RAMAddr <= o_MARBus;
@@ -212,11 +203,15 @@ begin
 	i_MARBus <= o_PCBus;
 	--i_PCBus <= o_IRBus(0 TO 11);
 	o_LED <= o_CP;
+	-- Start and stop buttonns
+	w_START <= not(i_PB(0));
+	w_STOP <= not(i_PB(1));
 	
-	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction) begin
+	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_START) begin
 		if o_CP(0) = '1' then
 			i_MARTakeIn <= '0';
 			i_PCTakeIn <= '0';
+			i_PCClear <= '0';
 		elsif o_CP(1) = '1' then
 		-- Increment Program Counter
 			i_PCInc <= '1';
@@ -241,8 +236,8 @@ begin
 		end if;
 		
 		-- Instruction tree
-		if Instruction = "0000" then
-			HALT <= '0';
+		if Instruction = "0000" and o_CP(5) = '1' then
+			r_RUN <= '1';
 		elsif Instruction = "0001" then
 			-- ADD
 		elsif Instruction = "1010" then
@@ -251,11 +246,21 @@ begin
 				i_PCClear <= '1';
 			elsif o_CP(6) = '1' then
 				i_PCClear <= '0';
-				i_PCBus <= o_IRBus(0 TO 11);
+				i_PCBus <= o_IRBus(4 TO 15);
 				i_PCTakeIn <= '1';
+			else
+				i_PCTakeIn <= '0';
+				i_PCClear <= '0';
 			end if;
 		end if;
+		if w_START = '1' and r_RUN = '0' then
+			r_RUN <= '1';
+			i_PCClear <= '1';
+		elsif w_STOP = '1' and r_RUN = '1' then
+			r_RUN <= '0';
+		else
+		end if;
 	end process;
-	Instruction <= o_IRBus(12 TO 15);
+	Instruction <= o_IRBus(0 TO 3);
 end rtl;
 

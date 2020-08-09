@@ -48,7 +48,7 @@ ARCHITECTURE behavior OF MemBufferRegisterTest IS
          i_MBRTakeIn : IN  std_logic;
          o_MBRWriteBus : OUT  std_logic_vector(0 to 15);
          o_MBRBus : OUT  std_logic_vector(0 to 15);
-         o_MBRWEA : OUT  std_logic
+         o_MBRWEA : OUT STD_LOGIC_VECTOR(0 TO 0)
         );
     END COMPONENT;
     
@@ -63,7 +63,7 @@ ARCHITECTURE behavior OF MemBufferRegisterTest IS
  	--Outputs
    signal o_MBRWriteBus : std_logic_vector(0 to 15);
    signal o_MBRBus : std_logic_vector(0 to 15);
-   signal o_MBRWEA : std_logic;
+   signal o_MBRWEA : std_logic_vector(0 to 0);
 
    -- Clock period definitions
    constant i_Clock_period : time := 10 ns;
