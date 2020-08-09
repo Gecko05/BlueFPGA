@@ -87,15 +87,15 @@ BEGIN
 
       -- insert stimulus here 
 		-- Turn ON
-		i_PB(0) <= '0';
-		i_PB(1) <= '1';
-		wait for 100 ns;
 		i_PB(0) <= '1';
 		i_PB(1) <= '1';
 		wait for 100 ns;
 		i_PB(0) <= '0';
 		i_PB(1) <= '1';
-		wait for 100 ns;
+		wait for CLK_100MHz_period;
+		i_PB(0) <= '1';
+		i_PB(1) <= '1';
+		wait for 2 us;
 		-- Turn OFF
 		i_PB(0) <= '1';
 		i_PB(1) <= '0';

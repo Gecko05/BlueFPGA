@@ -1,9 +1,9 @@
 memory_initialization_radix=16;
 memory_initialization_vector=
-F002, ; NOP
-F304, ; NOP
-A000, ; JMP 000
-0708, ; HLT
-0000, ; HLT
+F003,
+F304,
+0000,
+0708,
+0000, 
 0202,
 0303;

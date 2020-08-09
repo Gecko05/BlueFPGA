@@ -237,7 +237,7 @@ begin
 		
 		-- Instruction tree
 		if Instruction = "0000" and o_CP(5) = '1' then
-			r_RUN <= '1';
+			r_RUN <= '0';
 		elsif Instruction = "0001" then
 			-- ADD
 		elsif Instruction = "1010" then
