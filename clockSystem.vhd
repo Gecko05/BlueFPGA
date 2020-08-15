@@ -47,28 +47,28 @@ architecture rtl of clockSystem is
 	constant CLK_OUTPUTS : natural := 8;
 begin
 -- Main loop for generating the clock pulse signal
-	clockLoop : process (i_CLK_100MHz,i_RUN) begin
+	clockLoop : process (i_CLK_100MHz) begin
 		if rising_edge(i_CLK_100MHz) then
-			if i_RUN = '1' then
-				if CLK_CNT >= CLK_50MHz - 1 then
-					CLK_PULSE <= not CLK_PULSE;
-					CLK_CNT <= 0;
-					-- Set and clear the individual outputs
-					o_CP <= "00000000";
-					o_CP(CLK_PULSE_CNT) <= '1';
-					if CLK_PULSE_CNT >= CLK_OUTPUTS-1 then
-						CLK_PULSE_CNT <= 0;
-					else
-						CLK_PULSE_CNT <= CLK_PULSE_CNT + 1;
-					end if;
+--			if i_RUN = '1' then
+			if CLK_CNT >= CLK_50MHz - 1 then
+				CLK_PULSE <= not CLK_PULSE;
+				CLK_CNT <= 0;
+				-- Set and clear the individual outputs
+				o_CP <= "00000000";
+				o_CP(CLK_PULSE_CNT) <= '1';
+				if CLK_PULSE_CNT >= CLK_OUTPUTS-1 then
+					CLK_PULSE_CNT <= 0;
 				else
-					CLK_CNT <= CLK_CNT + 1;
+					CLK_PULSE_CNT <= CLK_PULSE_CNT + 1;
 				end if;
 			else
-				CLK_CNT <= 0;
-				o_CP <= "00000000";
-				CLK_PULSE <= '0';
+				CLK_CNT <= CLK_CNT + 1;
 			end if;
+--			else
+--				CLK_CNT <= 0;
+--				o_CP <= "00000000";
+--				CLK_PULSE <= '0';
+--			end if;
 		end if;
 	end process;
 	o_CLK <= CLK_PULSE;

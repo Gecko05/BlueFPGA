@@ -137,10 +137,11 @@ architecture rtl of system is
 	signal o_RAMDout : STD_LOGIC_VECTOR(15 DOWNTO 0);
 	
 	-- Control Unit signals
-	signal Instruction : STD_LOGIC_VECTOR(0 TO 3) := "1111";
+	signal Instruction : STD_LOGIC_VECTOR(0 TO 3) := "0000";
 	-- Buttons
 	signal w_START : STD_LOGIC;
 	signal w_STOP : STD_LOGIC;
+	signal r_HALT : STD_LOGIC := '0';
 begin
 	-- Clock and power
 	CLK_Sys: clockSystem PORT MAP(
@@ -207,8 +208,9 @@ begin
 	w_START <= not(i_PB(0));
 	w_STOP <= not(i_PB(1));
 	
-	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_START) begin
+	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_STOP, r_HALT) begin
 		if o_CP(0) = '1' then
+			r_HALT <= '0';
 			i_MARTakeIn <= '0';
 			i_PCTakeIn <= '0';
 			i_PCClear <= '0';
@@ -237,7 +239,7 @@ begin
 		
 		-- Instruction tree
 		if Instruction = "0000" and o_CP(5) = '1' then
-			r_RUN <= '0';
+			r_HALT <= '1';
 		elsif Instruction = "0001" then
 			-- ADD
 		elsif Instruction = "1010" then
@@ -253,13 +255,13 @@ begin
 				i_PCClear <= '0';
 			end if;
 		end if;
-		if w_START = '1' and r_RUN = '0' then
-			r_RUN <= '1';
-			i_PCClear <= '1';
-		elsif w_STOP = '1' and r_RUN = '1' then
-			r_RUN <= '0';
-		else
-		end if;
+--		if w_START = '1' and r_RUN = '0' then
+--			r_RUN <= '1';
+--			i_PCClear <= '1';
+--		elsif w_STOP = '1' and r_RUN = '1' then
+--			r_RUN <= '0';
+--		else
+--		end if;
 	end process;
 	Instruction <= o_IRBus(0 TO 3);
 end rtl;
