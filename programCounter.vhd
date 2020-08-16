@@ -33,8 +33,8 @@ use ieee.numeric_std.all;
 entity programCounter is
 	port (
 		i_Clock : in STD_lOGIC;
-		i_PCBus : in STD_LOGIC_VECTOR(0 TO 11);
-		o_PCBus : out STD_LOGIC_VECTOR(0 TO 11) := STD_LOGIC_VECTOR(to_unsigned(0,12));
+		i_PCBus : in STD_LOGIC_VECTOR(11 DOWNTO 0);
+		o_PCBus : out STD_LOGIC_VECTOR(11 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,12));
 		i_PCInc : in STD_lOGIC;
 		i_PCClear : in STD_LOGIC;
 		i_PCTakeIn : in STD_LOGIC-- signal to take a value from bus?
@@ -42,7 +42,7 @@ entity programCounter is
 end programCounter;
 
 architecture rtl of programCounter is
-	signal PCVal : STD_LOGIC_VECTOR(0 TO 11) := "000000000000";
+	signal PCVal : STD_LOGIC_VECTOR(11 DOWNTO 0) := "000000000000";
 	signal PCCounter : natural range 0 to 4095 := 0;
 begin
 	PCLoop : process (i_PCClear,i_PCTakeIn,i_PCInc, i_PCBus, i_Clock, PCCounter) begin

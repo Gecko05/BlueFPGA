@@ -33,17 +33,17 @@ entity MemBufferRegister is
 	port (
 		i_Clock : in STD_LOGIC;
 		i_MBRClear : in STD_LOGIC;
-		i_MBRBus : in STD_LOGIC_VECTOR(0 TO 15);
-		i_MBRReadBus : in STD_LOGIC_VECTOR(0 TO 15);
+		i_MBRBus : in STD_LOGIC_VECTOR(15 DOWNTO 0);
+		i_MBRReadBus : in STD_LOGIC_VECTOR(15 DOWNTO 0);
 		i_MBRTakeIn : in STD_LOGIC;
-		o_MBRWriteBus : out STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0,16));
-		o_MBRBus : out STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0,16));
-		o_MBRWEA : out STD_LOGIC_VECTOR(0 TO 0) := STD_LOGIC_VECTOR(to_unsigned(0,1))
+		o_MBRWriteBus : out STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,16));
+		o_MBRBus : out STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,16));
+		o_MBRWEA : out STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,1))
 	);
 end MemBufferRegister;
 
 architecture Behavioral of MemBufferRegister is	
-	signal MBRData : STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0,16));
+	signal MBRData : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,16));
 begin
 	MBRLoop : process(i_Clock, i_MBRClear, i_MBRTakeIn) begin
 		if rising_edge(i_Clock) then

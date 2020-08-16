@@ -32,7 +32,6 @@ use IEEE.NUMERIC_STD.ALL;
 entity clockSystem is
 	Port (
 		i_CLK_100MHz : in STD_LOGIC;
-		i_RUN : in STD_LOGIC;
 		o_CP : out STD_LOGIC_VECTOR(0 TO 7) := STD_LOGIC_VECTOR(to_unsigned(0,8));
 		o_CLK : out STD_LOGIC := '0'
 	);
@@ -49,7 +48,6 @@ begin
 -- Main loop for generating the clock pulse signal
 	clockLoop : process (i_CLK_100MHz) begin
 		if rising_edge(i_CLK_100MHz) then
---			if i_RUN = '1' then
 			if CLK_CNT >= CLK_50MHz - 1 then
 				CLK_PULSE <= not CLK_PULSE;
 				CLK_CNT <= 0;
@@ -64,11 +62,6 @@ begin
 			else
 				CLK_CNT <= CLK_CNT + 1;
 			end if;
---			else
---				CLK_CNT <= 0;
---				o_CP <= "00000000";
---				CLK_PULSE <= '0';
---			end if;
 		end if;
 	end process;
 	o_CLK <= CLK_PULSE;

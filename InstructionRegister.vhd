@@ -32,14 +32,14 @@ use IEEE.NUMERIC_STD.ALL;
 entity InstructionRegister is
 	port(
 		i_Clock : in STD_LOGIC;
-		i_IRBus : in STD_LOGIC_VECTOR(0 TO 15);
+		i_IRBus : in STD_LOGIC_VECTOR(15 DOWNTO 0);
 		i_IRTakeIn : in STD_LOGIC;
-		o_IRBus : out STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0, 16))
+		o_IRBus : out STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16))
 	);
 end InstructionRegister;
 
 architecture rtl of InstructionRegister is
-	signal IRData : STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal IRData : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 begin
 	IRLoop : process(i_Clock, i_IRTakeIn) begin
 		if rising_edge(i_IRTakeIn) then

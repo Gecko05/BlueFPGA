@@ -42,13 +42,12 @@ architecture rtl of system is
 	COMPONENT clockSystem
 	PORT(
 		i_CLK_100MHz : IN std_logic;		
-		i_RUN : IN std_logic;
 		o_CP : OUT std_logic_vector(0 to 7);
 		o_CLK : OUT std_logic
 		);
 	END COMPONENT;
 	
-	signal r_RUN : STD_LOGIC := '1';
+	signal r_RUN : STD_LOGIC := '0';
 	signal o_CP : STD_LOGIC_VECTOR(0 TO 7);
 	signal CPU_CLK : STD_LOGIC;
 	
@@ -56,69 +55,69 @@ architecture rtl of system is
 	COMPONENT InstructionRegister
 	PORT(
 		i_Clock : IN std_logic;
-		i_IRBus : IN std_logic_vector(0 to 15);
+		i_IRBus : IN std_logic_vector(15 DOWNTO 0);
 		i_IRTakeIn : IN std_logic;          
-		o_IRBus : OUT std_logic_vector(0 to 15)
+		o_IRBus : OUT std_logic_vector(15 DOWNTO 0)
 		);
 	END COMPONENT;
 	
-	signal i_IRBus : STD_lOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal i_IRBus : STD_lOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal i_IRTakeIn : STD_LOGIC := '0';
-	signal o_IRBus : STD_LOGIC_VECTOR(0 TO 15);
+	signal o_IRBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
 	
 -- Memory Buffer Register component
 	COMPONENT MemBufferRegister
 	PORT(
 		i_Clock : IN std_logic;
 		i_MBRClear : IN std_logic;
-		i_MBRBus : IN std_logic_vector(0 to 15);
-		i_MBRReadBus : IN std_logic_vector(0 to 15);
+		i_MBRBus : IN std_logic_vector(15 DOWNTO 0);
+		i_MBRReadBus : IN std_logic_vector(15 DOWNTO 0);
 		i_MBRTakeIn : IN std_logic;          
-		o_MBRWriteBus : OUT std_logic_vector(0 to 15);
-		o_MBRBus : OUT std_logic_vector(0 to 15);
-		o_MBRWEA : OUT std_logic_vector(0 to 0)
+		o_MBRWriteBus : OUT std_logic_vector(15 DOWNTO 0);
+		o_MBRBus : OUT std_logic_vector(15 DOWNTO 0);
+		o_MBRWEA : OUT std_logic_vector(15 DOWNTO 0)
 		);
 	END COMPONENT;
 	
 	signal i_MBRClear : STD_LOGIC := '0';
-	signal i_MBRBus : STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
-	signal i_MBRReadBus : STD_LOGIC_VECTOR(0 TO 15) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal i_MBRBus : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal i_MBRReadBus : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal i_MBRTakeIn : STD_LOGIC := '0';
-	signal o_MBRWriteBus : STD_LOGIC_VECTOR(0 TO 15);
-	SIGNAL O_MBRBus : STD_LOGIC_VECTOR(0 TO 15);
-	signal o_MBRWea : STD_LOGIC_VECTOR(0 TO 0);
+	signal o_MBRWriteBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
+	SIGNAL O_MBRBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
+	signal o_MBRWea : STD_LOGIC_VECTOR(0 DOWNTO 0);
 	
 	-- Memory Address Register component
 	COMPONENT MemAddrRegister
 	PORT(
 		i_Clock : IN std_logic;
-		i_MARBus : IN std_logic_vector(0 to 11);
+		i_MARBus : IN std_logic_vector(11 DOWNTO 0);
 		i_MARTakeIn : IN std_logic;          
-		o_MARBus : OUT std_logic_vector(0 to 11)
+		o_MARBus : OUT std_logic_vector(11 DOWNTO 0)
 		);
 	END COMPONENT;
 	
-	signal i_MARBus : STD_LOGIC_VECTOR(0 TO 11) := STD_LOGIC_VECTOR(to_unsigned(0, 12));
+	signal i_MARBus : STD_LOGIC_VECTOR(11 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 12));
 	signal i_MARTakeIn : STD_LOGIC := '0';
-	signal o_MARBus : STD_LOGIC_VECTOR(0 TO 11);
+	signal o_MARBus : STD_LOGIC_VECTOR(11 DOWNTO 0);
 	
 	-- Program Counter Register component
 	COMPONENT programCounter
 	PORT(
 		i_Clock : IN std_logic;
-		i_PCBus : IN std_logic_vector(0 to 11);
+		i_PCBus : IN std_logic_vector(11 DOWNTO 0);
 		i_PCInc : IN std_logic;
 		i_PCClear : IN std_logic;
 		i_PCTakeIn : IN std_logic;          
-		o_PCBus : OUT std_logic_vector(0 to 11)
+		o_PCBus : OUT std_logic_vector(11 DOWNTO 0)
 		);
 	END COMPONENT;
 	
-	signal i_PCBus : STD_LOGIC_VECTOR(0 TO 11) := STD_LOGIC_VECTOR(to_unsigned(0, 12));
+	signal i_PCBus : STD_LOGIC_VECTOR(11 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 12));
 	signal i_PCInc : STD_LOGIC := '0';
 	signal i_PCClear : STD_LOGIC := '0';
 	signal i_PCTakeIn : STD_LOGIC := '0';
-	signal o_PCBus : STD_LOGIC_VECTOR(0 TO 11);
+	signal o_PCBus : STD_LOGIC_VECTOR(11 DOWNTO 0);
 	
 	-- RAM Block component
 	COMPONENT RAMBlock
@@ -137,16 +136,14 @@ architecture rtl of system is
 	signal o_RAMDout : STD_LOGIC_VECTOR(15 DOWNTO 0);
 	
 	-- Control Unit signals
-	signal Instruction : STD_LOGIC_VECTOR(0 TO 3) := "0000";
+	signal Instruction : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
 	-- Buttons
 	signal w_START : STD_LOGIC;
 	signal w_STOP : STD_LOGIC;
-	signal r_HALT : STD_LOGIC := '0';
 begin
 	-- Clock and power
 	CLK_Sys: clockSystem PORT MAP(
 		i_CLK_100MHz => CLK_100MHz,
-		i_RUN => r_RUN,
 		o_CP => o_CP,
 		o_CLK => CPU_CLK
 	);
@@ -208,61 +205,64 @@ begin
 	w_START <= not(i_PB(0));
 	w_STOP <= not(i_PB(1));
 	
-	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_STOP, r_HALT) begin
-		if o_CP(0) = '1' then
-			r_HALT <= '0';
-			i_MARTakeIn <= '0';
-			i_PCTakeIn <= '0';
-			i_PCClear <= '0';
-		elsif o_CP(1) = '1' then
-		-- Increment Program Counter
-			i_PCInc <= '1';
-		elsif o_CP(2) = '1' then
-		-- Fetch Instruction
-			i_PCInc <= '0';
-			i_MBRClear <= '1';
-		elsif o_CP(3) = '1' then
-		-- Clear Instruction Register
-			i_MBRClear <= '0';
-			i_IRTakeIn <= '1';
-		elsif o_CP(4) = '1' then
-			i_IRTakeIn <= '0';
-		elsif o_CP(5) = '1' then
-		
-		elsif o_CP(6) = '1' then
-		
-		elsif o_CP(7) = '1' then
-			i_MARTakeIn <= '1';
-			i_PCTakeIn <= '0';
-		else
-		end if;
-		
-		-- Instruction tree
-		if Instruction = "0000" and o_CP(5) = '1' then
-			r_HALT <= '1';
-		elsif Instruction = "0001" then
-			-- ADD
-		elsif Instruction = "1010" then
-			-- JMP
-			if o_CP(5) = '1' then
-				i_PCClear <= '1';
-			elsif o_CP(6) = '1' then
-				i_PCClear <= '0';
-				i_PCBus <= o_IRBus(4 TO 15);
-				i_PCTakeIn <= '1';
-			else
+	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_STOP) begin
+		if r_RUN = '1' then
+			if o_CP(0) = '1' then
+				i_MARTakeIn <= '0';
 				i_PCTakeIn <= '0';
 				i_PCClear <= '0';
+			elsif o_CP(1) = '1' then
+			-- Increment Program Counter
+				i_PCInc <= '1';
+			elsif o_CP(2) = '1' then
+			-- Fetch Instruction
+				i_PCInc <= '0';
+				i_MBRClear <= '1';
+			elsif o_CP(3) = '1' then
+			-- Clear Instruction Register
+				i_MBRClear <= '0';
+				i_IRTakeIn <= '1';
+			elsif o_CP(4) = '1' then
+				i_IRTakeIn <= '0';
+			elsif o_CP(5) = '1' then
+			
+			elsif o_CP(6) = '1' then
+			
+			elsif o_CP(7) = '1' then
+				i_MARTakeIn <= '1';
+				i_PCTakeIn <= '0';
+			else
+			end if;
+			
+			-- Instruction tree
+			if Instruction = "0000" and o_CP(5) = '1' then
+				r_RUN <= '0';
+			elsif Instruction = "0001" then
+				-- ADD
+			elsif Instruction = "1010" then
+				-- JMP
+				if o_CP(5) = '1' then
+					i_PCClear <= '1';
+				elsif o_CP(6) = '1' then
+					i_PCClear <= '0';
+					i_PCBus <= o_IRBus(11 DOWNTO 0);
+					i_PCTakeIn <= '1';
+				else
+					i_PCTakeIn <= '0';
+					i_PCClear <= '0';
+				end if;
+			end if;
+			
+			if w_STOP = '1' then
+				r_RUN  <= '0';
+			end if;
+		elsif r_RUN = '0' then
+			if w_START = '1' then
+				r_RUN <= '1';
+				i_PCClear <= '1';
 			end if;
 		end if;
---		if w_START = '1' and r_RUN = '0' then
---			r_RUN <= '1';
---			i_PCClear <= '1';
---		elsif w_STOP = '1' and r_RUN = '1' then
---			r_RUN <= '0';
---		else
---		end if;
 	end process;
-	Instruction <= o_IRBus(0 TO 3);
+	Instruction <= o_IRBus(15 DOWNTO 12);
 end rtl;
 
