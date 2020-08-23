@@ -31,7 +31,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity UART_RX is
     Port ( i_RX : in  STD_LOGIC;
-           i_CLK100MHz : in  STD_LOGIC;
+           i_CLK_100MHz : in  STD_LOGIC;
 			  o_LEDs : out STD_LOGIC_VECTOR (0 TO 2);
 			  o_RXDATA : out STD_LOGIC_VECTOR (7 DOWNTO 0));
 end UART_RX;
@@ -44,8 +44,8 @@ architecture Behavioral of UART_RX is
 	signal CLK_CNT : natural range 0 to CLK_19200;
 	signal CLK_PULSE : STD_lOGIC := '0';
 begin
-	receiveLoop : process (i_RX, i_CLK100MHz, r_DATA) begin
-		if rising_edge(i_CLK100MHz) then
+	receiveLoop : process (i_RX, i_CLK_100MHz, r_DATA) begin
+		if rising_edge(i_CLK_100MHz) then
 			if CLK_CNT = CLK_19200 - 1 then
 				CLK_CNT <= 0;
 				CLK_PULSE <= not(CLK_PULSE);
