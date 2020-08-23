@@ -32,7 +32,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity UART_RX is
     Port ( i_RX : in  STD_LOGIC;
            i_CLK100MHz : in  STD_LOGIC;
-			  o_LEDs : out STD_LOGIC_VECTOR (0 TO 3);
+			  o_LEDs : out STD_LOGIC_VECTOR (0 TO 2);
 			  o_RXDATA : out STD_LOGIC_VECTOR (7 DOWNTO 0));
 end UART_RX;
 
@@ -73,7 +73,6 @@ begin
 				if r_BIT = 7 then
 					r_DATA(r_BIT) <= i_RX;
 					o_LEDs(2) <= '0';
-					o_LEDs(3) <= '1';
 					r_STATE <= 3; -- Look for stop bit
 				elsif r_BIT < 7 then
 					o_LEDs(1) <= '0';
