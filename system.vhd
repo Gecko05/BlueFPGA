@@ -257,9 +257,9 @@ begin
 				r_RUN  <= '0';
 			end if;
 		elsif r_RUN = '0' then
-			if w_START = '1' then
+			if w_START = '1' and o_CP(7) = '1' then
 				r_RUN <= '1';
-				i_PCClear <= '1';
+				--i_PCClear <= '1';
 			end if;
 		end if;
 	end process;

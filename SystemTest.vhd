@@ -93,21 +93,21 @@ BEGIN
 		-- Turn ON
 		i_PB(0) <= '0'; 
 		i_PB(1) <= '1';
-		wait for CLK_100MHz_period;
+		wait for CLK_100MHz_period * 16;
 		i_PB(0) <= '1';
 		i_PB(1) <= '1';
 		wait for 1 us;
 		-- Turn OFF
 		i_PB(0) <= '1';
 		i_PB(1) <= '0';
-		wait for CLK_100MHz_period;
+		wait for CLK_100MHz_period * 16;
 		i_PB(0) <= '1';
 		i_PB(1) <= '1';
 		wait for 100 ns;
 		-- Turn ON again
 		i_PB(0) <= '0';
 		i_PB(1) <= '1';
-		wait for CLK_100MHz_period;
+		wait for CLK_100MHz_period * 16;
 		i_PB(0) <= '1';
 		i_PB(1) <= '1';
       wait;
