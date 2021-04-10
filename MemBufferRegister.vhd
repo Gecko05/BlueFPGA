@@ -38,7 +38,7 @@ entity MemBufferRegister is
 		i_MBRTakeIn : in STD_LOGIC;
 		o_MBRWriteBus : out STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,16));
 		o_MBRBus : out STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,16));
-		o_MBRWEA : out STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,1))
+		o_MBRWEA : out STD_LOGIC_VECTOR(0 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,1))
 	);
 end MemBufferRegister;
 

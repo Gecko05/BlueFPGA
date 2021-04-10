@@ -75,7 +75,7 @@ architecture rtl of system is
 		i_MBRTakeIn : IN std_logic;          
 		o_MBRWriteBus : OUT std_logic_vector(15 DOWNTO 0);
 		o_MBRBus : OUT std_logic_vector(15 DOWNTO 0);
-		o_MBRWEA : OUT std_logic_vector(15 DOWNTO 0)
+		o_MBRWEA : OUT std_logic_vector(0 DOWNTO 0)
 		);
 	END COMPONENT;
 	
