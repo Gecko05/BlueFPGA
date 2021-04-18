@@ -166,7 +166,7 @@ architecture rtl of system is
 	signal i_ACC : STD_LOGIC_VECTOR(15 downto 0);
 	signal i_NUM : STD_LOGIC_VECTOR(15 downto 0);
 	signal i_OP : STD_LOGIC_VECTOR(2 DOWNTO 0);
-	signal o_OF : STD_LOGIC_VECTOR;
+	signal o_OF : STD_LOGIC;
 	signal o_ACC : STD_LOGIC_VECTOR(15 downto 0);
 	
 	-- Control Unit signals
@@ -243,6 +243,7 @@ begin
 		o_OF => o_OF,
 		o_ACC => o_ACC
 	);
+	-----------------------------------------
 	  
 	-- General connections between components
 	i_RAMWea <= o_MBRWea;
@@ -251,6 +252,10 @@ begin
 	i_MBRReadBus <= o_RAMDout;
 	i_IRBus <= o_MBRBus;
 	i_MARBus <= o_PCBus;
+	-- ALU connections
+	i_ACC <= o_ACCBus;
+	o_ACC <= i_ACCBus;
+	
 	--i_PCBus <= o_IRBus(0 TO 11);
 	o_LED <= o_CP;
 	-- Start and stop buttonns
@@ -260,6 +265,7 @@ begin
 	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_STOP) begin
 		if r_RUN = '1' then
 			-- Control Unit
+			-- Shared Clock routines for all instructions
 			if o_CP(0) = '1' then
 				i_MARTakeIn <= '0';
 				i_PCTakeIn <= '0';
@@ -282,29 +288,29 @@ begin
 			elsif o_CP(6) = '1' then
 			
 			elsif o_CP(7) = '1' then
-				i_MARTakeIn <= '1';
-				i_PCTakeIn <= '0';
+				--i_MARTakeIn <= '1';
+				--i_PCTakeIn <= '0';
 			else
 			end if;
 			
 			-- Instruction tree
-			if Instruction = "0000" and o_CP(5) = '1' then
-				r_RUN <= '0';
-			elsif Instruction = "0001" then
-				-- ADD
-			elsif Instruction = "1010" then
-				-- JMP
-				if o_CP(5) = '1' then
-					i_PCClear <= '1';
-				elsif o_CP(6) = '1' then
-					i_PCClear <= '0';
-					i_PCBus <= o_IRBus(11 DOWNTO 0);
-					i_PCTakeIn <= '1';
-				else
-					i_PCTakeIn <= '0';
-					i_PCClear <= '0';
-				end if;
-			end if;
+--			if Instruction = "0000" and o_CP(5) = '1' then
+--				r_RUN <= '0';
+--			elsif Instruction = "0001" then
+--				-- ADD
+--			elsif Instruction = "1010" then
+--				-- JMP
+--				if o_CP(5) = '1' then
+--					i_PCClear <= '1';
+--				elsif o_CP(6) = '1' then
+--					i_PCClear <= '0';
+--					i_PCBus <= o_IRBus(11 DOWNTO 0);
+--					i_PCTakeIn <= '1';
+--				else
+--					i_PCTakeIn <= '0';
+--					i_PCClear <= '0';
+--				end if;
+--			end if;
 			
 			-- HALT
 			if w_STOP = '1' then
