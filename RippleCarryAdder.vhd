@@ -31,7 +31,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity RippleCarryAdder is
 	generic (
-		g_WIDTH : natural := 2
+		g_WIDTH : natural := 16
 		);
 	port (
 		i_add1 : in STD_LOGIC_VECTOR(g_WIDTH-1 DOWNTO 0);

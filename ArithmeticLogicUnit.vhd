@@ -35,38 +35,46 @@ entity ArithmeticLogicUnit is
 		i_NUM : in STD_LOGIC_VECTOR(15 DOWNTO 0);
 		i_OP : in STD_LOGIC_VECTOR(2 DOWNTO 0);
 		i_CLK : in STD_LOGIC;
+		o_OF : out STD_LOGIC;
 		o_ACC : out STD_LOGIC_VECTOR(15 DOWNTO 0)
 	);
 end ArithmeticLogicUnit;
 
+-- Not sure if I should implement the individual bits instead and then
+-- merge them into the ALU. The clock process is what makes me doubt.
 architecture rtl of ArithmeticLogicUnit is
-	signal D0 : integer range -32768 to 32768 := 0;
-	signal D1 : integer range -32768 to 32768 := 0;
-	signal DR : integer range -65536 to 65536 := 0;
+	signal ADD_RES : STD_LOGIC_VECTOR(16 DOWNTO 0) := "00000000000000000";
+	signal RES : STD_LOGIC_VECTOR(15 DOWNTO 0) := "0000000000000000";
+	signal OVERFLOW : STD_LOGIC := '0';
+	
+	-- This component will perform the adding arithmetic
+	COMPONENT RippleCarryAdder
+    PORT(
+         i_add1 : IN  std_logic_vector(15 downto 0);
+         i_add2 : IN  std_logic_vector(15 downto 0);
+         o_res : OUT  std_logic_vector(16 downto 0)
+        );
+    END COMPONENT;
 begin
+		-- Instantiate the Ripple Carry Adder
+   Adder: RippleCarryAdder PORT MAP (
+          i_add1 => i_ACC,
+          i_add2 => i_NUM,
+          o_res => ADD_RES
+        );
+
 	ALUloop : process(i_CLK) begin
 		if rising_edge(i_CLK) then
-			if i_OP = "000" then
+			if i_OP = "000" then -- HALD Instruction from Control Unit
 				
-			elsif i_OP = "001" then -- ADD
-				D0 <= to_integer(unsigned(i_ACC(14 DOWNTO 0)));
-				D1 <= to_integer(unsigned(i_NUM(14 DOWNTO 0)));
-				if (i_ACC(15) = '1') then
-					D0 <= D0 * (-1);
-				end if;
-				if (i_NUM(15) = '1') then
-					D1 <= D1 * (-1);
-				end if;
-				DR <= D0 + D1;
-				o_ACC(14 DOWNTO 0) <= STD_LOGIC_VECTOR(to_unsigned(DR, 15));
-				if DR < 0 then
-					o_ACC(15) <= '1';
-				else 
-					o_ACC(15) <= '0';
-				end if;
+			elsif i_OP = "001" then -- ADD Instruction from CU
+				RES <= ADD_RES(15 DOWNTO 0);
+				OVERFLOW <= (i_ACC(15) AND i_NUM(15) AND (NOT(ADD_RES(15)))) OR ((NOT(i_ACC(15))) AND (NOT(i_NUM(15))) AND ADD_RES(15));
 			else
 			end if;
 		end if;
 	end process;
+	o_ACC <= RES;
+	o_OF <= OVERFLOW;
 end rtl;
 

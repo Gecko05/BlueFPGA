@@ -135,6 +135,24 @@ architecture rtl of system is
 	signal i_RAMDin : STD_LOGIC_VECTOR(15 DOWNTO 0);
 	signal o_RAMDout : STD_LOGIC_VECTOR(15 DOWNTO 0);
 	
+	-- ACC Register component
+	COMPONENT AccumulatorRegister
+	PORT(
+		i_Clock : IN std_logic;
+		i_ACCClear : IN std_logic;
+		i_ACCBus : IN std_logic_vector(15 downto 0);
+		i_ACCTakeIn : IN std_logic;          
+		o_ACCBus : OUT std_logic_vector(15 downto 0)
+		);
+	END COMPONENT;
+	
+	signal i_ACCClear : STD_LOGIC;
+	signal i_ACCBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
+	signal i_ACCTakeIn : STD_LOGIC;
+	signal o_ACCBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
+	
+	-- ALU component
+	
 	-- Control Unit signals
 	signal Instruction : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
 	-- Buttons
@@ -192,6 +210,16 @@ begin
 		 dina => i_RAMDin,
 		 douta => o_RAMDout
 	  );
+	-- ACC Register
+	ACC: AccumulatorRegister PORT MAP(
+		i_Clock => CPU_CLK,
+		i_ACCClear => i_ACCClear,
+		i_ACCBus => i_ACCBus,
+		i_ACCTakeIn => i_ACCTakeIn,
+		o_ACCBus => o_ACCBus
+	);
+	-- ALU
+	  
 	-- General connections between components
 	i_RAMWea <= o_MBRWea;
 	i_RAMDin <= o_MBRWriteBus;
@@ -207,6 +235,7 @@ begin
 	
 	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_STOP) begin
 		if r_RUN = '1' then
+			-- Control Unit
 			if o_CP(0) = '1' then
 				i_MARTakeIn <= '0';
 				i_PCTakeIn <= '0';
@@ -253,9 +282,12 @@ begin
 				end if;
 			end if;
 			
+			-- HALT
 			if w_STOP = '1' then
 				r_RUN  <= '0';
 			end if;
+			
+		-- START/RESUME
 		elsif r_RUN = '0' then
 			if w_START = '1' and o_CP(7) = '1' then
 				r_RUN <= '1';

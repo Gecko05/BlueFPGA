@@ -41,19 +41,19 @@ ARCHITECTURE behavior OF RippleCarryAdderTest IS
  
     COMPONENT RippleCarryAdder
     PORT(
-         i_add1 : IN  std_logic_vector(1 downto 0);
-         i_add2 : IN  std_logic_vector(1 downto 0);
-         o_res : OUT  std_logic_vector(2 downto 0)
+         i_add1 : IN  std_logic_vector(15 downto 0);
+         i_add2 : IN  std_logic_vector(15 downto 0);
+         o_res : OUT  std_logic_vector(16 downto 0)
         );
     END COMPONENT;
     
 
    --Inputs
-   signal i_add1 : std_logic_vector(1 downto 0) := (others => '0');
-   signal i_add2 : std_logic_vector(1 downto 0) := (others => '0');
+   signal i_add1 : std_logic_vector(15 downto 0) := (others => '0');
+   signal i_add2 : std_logic_vector(15 downto 0) := (others => '0');
 
  	--Outputs
-   signal o_res : std_logic_vector(2 downto 0);
+   signal o_res : std_logic_vector(16 downto 0);
    -- No clocks detected in port list. Replace CLK below with 
    -- appropriate port name 
 	signal CLK : STD_LOGIC;
@@ -85,23 +85,23 @@ BEGIN
       wait for 100 ns;	
 
       wait for CLK_period*10;
-		i_add1 <= "00";
-		i_add2 <= "01";
+		i_add1 <= "0000000000000000";
+		i_add2 <= "0000000000000001";
 		wait for 10 ns;
-		i_add1 <= "10";
-		i_add2 <= "01";
+		i_add1 <= "0000000000000010";
+		i_add2 <= "0000000000000001";
 		wait for 10 ns;
-		i_add1 <= "11";
-		i_add2 <= "01";
+		i_add1 <= "0000000000000011";
+		i_add2 <= "0000000000000001";
 		wait for 10 ns;
-		i_add1 <= "10";
-		i_add2 <= "11";
+		i_add1 <= "0000000000000010";
+		i_add2 <= "0000000000000011";
 		wait for 10 ns;
-		i_add1 <= "11";
-		i_add2 <= "11";
+		i_add1 <= "0000000000000011";
+		i_add2 <= "0000000000000011";
 		wait for 10 ns;
-		i_add1 <= "01";
-		i_add2 <= "11";
+		i_add1 <= "0000000000000001";
+		i_add2 <= "0000000000000011";
 		wait for 10 ns;
       -- insert stimulus here 
       wait;
