@@ -152,6 +152,22 @@ architecture rtl of system is
 	signal o_ACCBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
 	
 	-- ALU component
+	COMPONENT ArithmeticLogicUnit
+	PORT(
+		i_ACC : IN std_logic_vector(15 downto 0);
+		i_NUM : IN std_logic_vector(15 downto 0);
+		i_OP : IN std_logic_vector(2 downto 0);
+		i_CLK : IN std_logic;          
+		o_OF : OUT std_logic;
+		o_ACC : OUT std_logic_vector(15 downto 0)
+		);
+	END COMPONENT;
+	
+	signal i_ACC : STD_LOGIC_VECTOR(15 downto 0);
+	signal i_NUM : STD_LOGIC_VECTOR(15 downto 0);
+	signal i_OP : STD_LOGIC_VECTOR(2 DOWNTO 0);
+	signal o_OF : STD_LOGIC_VECTOR;
+	signal o_ACC : STD_LOGIC_VECTOR(15 downto 0);
 	
 	-- Control Unit signals
 	signal Instruction : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
@@ -219,6 +235,14 @@ begin
 		o_ACCBus => o_ACCBus
 	);
 	-- ALU
+	ALU: ArithmeticLogicUnit PORT MAP(
+		i_ACC => i_ACC,
+		i_NUM => i_NUM,
+		i_OP => i_OP,
+		i_CLK => CPU_CLK,
+		o_OF => o_OF,
+		o_ACC => o_ACC
+	);
 	  
 	-- General connections between components
 	i_RAMWea <= o_MBRWea;
