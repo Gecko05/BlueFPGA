@@ -171,6 +171,7 @@ architecture rtl of system is
 	
 	-- Control Unit signals
 	signal Instruction : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
+	signal STATE : STD_LOGIC := '0'; -- 0 is Fetch, 1 is Execute
 	-- Buttons
 	signal w_START : STD_LOGIC;
 	signal w_STOP : STD_LOGIC;
@@ -284,33 +285,51 @@ begin
 			elsif o_CP(4) = '1' then
 				i_IRTakeIn <= '0';
 			elsif o_CP(5) = '1' then
-			
+				
 			elsif o_CP(6) = '1' then
 			
 			elsif o_CP(7) = '1' then
-				--i_MARTakeIn <= '1';
-				--i_PCTakeIn <= '0';
+				if STATE = '0' and unsigned(Instruction) < 5 then -- Fetch Cycle
+					STATE <= '1';
+					i_MARBus <= o_IRBus(11 DOWNTO 0);
+					i_MARTakeIn <= '1'; -- Need to multiplex this back to PCBus
+				elsif STATE = '1' then -- Execute Cycle
+					i_MARBus <= o_PCBus;
+					i_MARTakeIn <= '1';
+					i_PCTakeIn <= '0';
+					STATE <= '0';
+				elsif STATE = '0' then -- Standard behavior
+					i_MARTakeIn <= '1';
+					i_PCTakeIn <= '0';
+				end if;
 			else
 			end if;
 			
+			-- This code is a mess, need to refactor with functions or something
 			-- Instruction tree
---			if Instruction = "0000" and o_CP(5) = '1' then
---				r_RUN <= '0';
---			elsif Instruction = "0001" then
---				-- ADD
---			elsif Instruction = "1010" then
---				-- JMP
---				if o_CP(5) = '1' then
---					i_PCClear <= '1';
---				elsif o_CP(6) = '1' then
---					i_PCClear <= '0';
---					i_PCBus <= o_IRBus(11 DOWNTO 0);
---					i_PCTakeIn <= '1';
---				else
---					i_PCTakeIn <= '0';
---					i_PCClear <= '0';
---				end if;
---			end if;
+			if Instruction = "0000" and o_CP(5) = '1' then
+				r_RUN <= '0';
+			elsif Instruction = "0001" then
+				-- ADD
+				if o_CP(5) = '1' then
+				
+				elsif o_CP(6) = '1' then
+				
+				else
+				end if;
+			elsif Instruction = "1010" then
+				-- JMP
+				if o_CP(5) = '1' then
+					i_PCClear <= '1';
+				elsif o_CP(6) = '1' then
+					i_PCClear <= '0';
+					i_PCBus <= o_IRBus(11 DOWNTO 0);
+					i_PCTakeIn <= '1';
+				else
+					i_PCTakeIn <= '0';
+					i_PCClear <= '0';
+				end if;
+			end if;
 			
 			-- HALT
 			if w_STOP = '1' then
