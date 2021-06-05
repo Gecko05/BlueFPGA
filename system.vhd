@@ -151,6 +151,23 @@ architecture rtl of system is
 	signal i_ACCTakeIn : STD_LOGIC;
 	signal o_ACCBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
 	
+	-- Z Register component
+	
+	COMPONENT ZRegister
+	PORT(
+		i_Clock : IN std_logic;
+		i_ZClear : IN std_logic;
+		i_ZBus : IN std_logic_vector(15 downto 0);
+		i_ZTakeIn : IN std_logic;          
+		o_ZBus : OUT std_logic_vector(15 downto 0)
+		);
+	END COMPONENT;
+	
+	signal i_ZClear : STD_LOGIC;
+	signal i_ZBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
+	signal i_ZTakeIn : STD_LOGIC;
+	signal o_ZBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
+	
 	-- ALU component
 	COMPONENT ArithmeticLogicUnit
 	PORT(
@@ -235,6 +252,14 @@ begin
 		i_ACCTakeIn => i_ACCTakeIn,
 		o_ACCBus => o_ACCBus
 	);
+	-- Z Register
+	ZREG: ZRegister PORT MAP(
+		i_Clock => CPU_CLK,
+		i_ZClear => i_ZClear,
+		i_ZBus => i_ZBus,
+		i_ZTakeIn => i_ZTakeIn,
+		o_ZBus => o_ZBus
+	);
 	-- ALU
 	ALU: ArithmeticLogicUnit PORT MAP(
 		i_ACC => i_ACC,
@@ -252,10 +277,8 @@ begin
 	i_RAMAddr <= o_MARBus;
 	i_MBRReadBus <= o_RAMDout;
 	i_IRBus <= o_MBRBus;
-	i_MARBus <= o_PCBus;
 	-- ALU connections
-	i_ACC <= o_ACCBus;
-	o_ACC <= i_ACCBus;
+	i_ZBus <= o_ACCBus;
 	
 	--i_PCBus <= o_IRBus(0 TO 11);
 	o_LED <= o_CP;
@@ -272,24 +295,44 @@ begin
 				i_PCTakeIn <= '0';
 				i_PCClear <= '0';
 			elsif o_CP(1) = '1' then
-			-- Increment Program Counter
-				i_PCInc <= '1';
+				if STATE = '0' then
+				-- Increment Program Counter
+					i_PCInc <= '1';
+				end if;
 			elsif o_CP(2) = '1' then
 			-- Fetch Instruction
 				i_PCInc <= '0';
 				i_MBRClear <= '1';
+				if STATE = '1' then
+					i_ACCClear <= '1';
+				end if;
 			elsif o_CP(3) = '1' then
-			-- Clear Instruction Register
+				if STATE = '0' then
+				-- Clear Instruction Register
+					i_IRTakeIn <= '1';
+				end if;
 				i_MBRClear <= '0';
-				i_IRTakeIn <= '1';
+				i_ACCClear <= '0';
 			elsif o_CP(4) = '1' then
 				i_IRTakeIn <= '0';
 			elsif o_CP(5) = '1' then
-				
+				if STATE = '0' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
+					i_ZClear <= '1';
+				elsif STATE = '1' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
+					i_ACC <= o_MBRBus;
+					i_NUM <= o_ZBus;
+					i_OP <= "001";
+					i_ACCBus <= o_ACC;
+				end if;
 			elsif o_CP(6) = '1' then
-			
+				if STATE = '0' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
+					i_ZClear <= '0';
+					i_ZTakeIn <= '1';
+				elsif STATE = '1' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
+					i_ACCTakeIn <= '1';
+				end if;
 			elsif o_CP(7) = '1' then
-				if STATE = '0' and unsigned(Instruction) < 5 then -- Fetch Cycle
+				if STATE = '0' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then -- Fetch Cycle
 					STATE <= '1';
 					i_MARBus <= o_IRBus(11 DOWNTO 0);
 					i_MARTakeIn <= '1'; -- Need to multiplex this back to PCBus
@@ -299,9 +342,12 @@ begin
 					i_PCTakeIn <= '0';
 					STATE <= '0';
 				elsif STATE = '0' then -- Standard behavior
+					i_MARBus <= o_PCBus;
 					i_MARTakeIn <= '1';
 					i_PCTakeIn <= '0';
 				end if;
+				i_ACCTakeIn <= '0';
+				i_ZTakeIn <= '0';
 			else
 			end if;
 			
