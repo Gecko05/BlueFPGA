@@ -335,16 +335,14 @@ begin
 				if STATE = '0' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then -- Fetch Cycle
 					STATE <= '1';
 					i_MARBus <= o_IRBus(11 DOWNTO 0);
-					i_MARTakeIn <= '1'; -- Need to multiplex this back to PCBus
-				elsif STATE = '1' then -- Execute Cycle
+					i_MARTakeIn <= '1';
+				elsif STATE = '1' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then -- Execute Cycle
 					i_MARBus <= o_PCBus;
 					i_MARTakeIn <= '1';
-					i_PCTakeIn <= '0';
 					STATE <= '0';
 				elsif STATE = '0' then -- Standard behavior
 					i_MARBus <= o_PCBus;
 					i_MARTakeIn <= '1';
-					i_PCTakeIn <= '0';
 				end if;
 				i_ACCTakeIn <= '0';
 				i_ZTakeIn <= '0';
@@ -355,14 +353,6 @@ begin
 			-- Instruction tree
 			if Instruction = "0000" and o_CP(5) = '1' then
 				r_RUN <= '0';
-			elsif Instruction = "0001" then
-				-- ADD
-				if o_CP(5) = '1' then
-				
-				elsif o_CP(6) = '1' then
-				
-				else
-				end if;
 			elsif Instruction = "1010" then
 				-- JMP
 				if o_CP(5) = '1' then
