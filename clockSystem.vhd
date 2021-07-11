@@ -48,8 +48,8 @@ begin
 -- Main loop for generating the clock pulse signal
 	clockLoop : process (i_CLK_100MHz) begin
 		if rising_edge(i_CLK_100MHz) then
+			CLK_PULSE <= not CLK_PULSE;
 			if CLK_CNT >= CLK_50MHz - 1 then
-				CLK_PULSE <= not CLK_PULSE;
 				CLK_CNT <= 0;
 				-- Set and clear the individual outputs
 				o_CP <= "00000000";

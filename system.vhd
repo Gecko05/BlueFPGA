@@ -147,7 +147,7 @@ architecture rtl of system is
 	END COMPONENT;
 	
 	signal i_ACCClear : STD_LOGIC;
-	signal i_ACCBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
+	signal i_ACCBus : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal i_ACCTakeIn : STD_LOGIC;
 	signal o_ACCBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
 	
@@ -163,9 +163,9 @@ architecture rtl of system is
 		);
 	END COMPONENT;
 	
-	signal i_ZClear : STD_LOGIC;
+	signal i_ZClear : STD_LOGIC := '0';
 	signal i_ZBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
-	signal i_ZTakeIn : STD_LOGIC;
+	signal i_ZTakeIn : STD_LOGIC := '0';
 	signal o_ZBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
 	
 	-- ALU component
@@ -180,11 +180,11 @@ architecture rtl of system is
 		);
 	END COMPONENT;
 	
-	signal i_ACC : STD_LOGIC_VECTOR(15 downto 0);
-	signal i_NUM : STD_LOGIC_VECTOR(15 downto 0);
-	signal i_OP : STD_LOGIC_VECTOR(2 DOWNTO 0);
-	signal o_OF : STD_LOGIC;
-	signal o_ACC : STD_LOGIC_VECTOR(15 downto 0);
+	signal i_ACC : STD_LOGIC_VECTOR(15 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal i_NUM : STD_LOGIC_VECTOR(15 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal i_OP : STD_LOGIC_VECTOR(2 DOWNTO 0) := "000";
+	signal o_OF : STD_LOGIC := '0';
+	signal o_ACC : STD_LOGIC_VECTOR(15 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	
 	-- Control Unit signals
 	signal Instruction : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
@@ -192,6 +192,7 @@ architecture rtl of system is
 	-- Buttons
 	signal w_START : STD_LOGIC;
 	signal w_STOP : STD_LOGIC;
+	signal r_NEW_CYCLE : STD_LOGIC; -- Used as a lock to avoid going into CP(7) more than once
 begin
 	-- Clock and power
 	CLK_Sys: clockSystem PORT MAP(
@@ -286,19 +287,23 @@ begin
 	w_START <= not(i_PB(0));
 	w_STOP <= not(i_PB(1));
 	
-	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_STOP) begin
+	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_STOP, r_NEW_CYCLE) begin
 		if r_RUN = '1' then
 			-- Control Unit
 			-- Shared Clock routines for all instructions
+			-- CLOCK PULSE 1
 			if o_CP(0) = '1' then
 				i_MARTakeIn <= '0';
 				i_PCTakeIn <= '0';
 				i_PCClear <= '0';
+				r_NEW_CYCLE <= '1';
+			-- CLOCK PULSE 2
 			elsif o_CP(1) = '1' then
 				if STATE = '0' then
 				-- Increment Program Counter
 					i_PCInc <= '1';
 				end if;
+			-- CLOCK PULSE 3
 			elsif o_CP(2) = '1' then
 			-- Fetch Instruction
 				i_PCInc <= '0';
@@ -306,6 +311,7 @@ begin
 				if STATE = '1' then
 					i_ACCClear <= '1';
 				end if;
+			-- CLOCK PULSE 4
 			elsif o_CP(3) = '1' then
 				if STATE = '0' then
 				-- Clear Instruction Register
@@ -313,8 +319,10 @@ begin
 				end if;
 				i_MBRClear <= '0';
 				i_ACCClear <= '0';
+			-- CLOCK PULSE 5
 			elsif o_CP(4) = '1' then
 				i_IRTakeIn <= '0';
+			-- CLOCK PULSE 6
 			elsif o_CP(5) = '1' then
 				if STATE = '0' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
 					i_ZClear <= '1';
@@ -322,30 +330,37 @@ begin
 					i_ACC <= o_MBRBus;
 					i_NUM <= o_ZBus;
 					i_OP <= "001";
-					i_ACCBus <= o_ACC;
 				end if;
+			-- CLOCK PULSE 7
 			elsif o_CP(6) = '1' then
 				if STATE = '0' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
 					i_ZClear <= '0';
 					i_ZTakeIn <= '1';
 				elsif STATE = '1' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
+					i_ACCBus <= o_ACC;
 					i_ACCTakeIn <= '1';
 				end if;
-			elsif o_CP(7) = '1' then
-				if STATE = '0' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then -- Fetch Cycle
-					STATE <= '1';
-					i_MARBus <= o_IRBus(11 DOWNTO 0);
-					i_MARTakeIn <= '1';
-				elsif STATE = '1' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then -- Execute Cycle
-					i_MARBus <= o_PCBus;
-					i_MARTakeIn <= '1';
-					STATE <= '0';
-				elsif STATE = '0' then -- Standard behavior
-					i_MARBus <= o_PCBus;
-					i_MARTakeIn <= '1';
+			-- CLOCK PULSE 8
+			elsif o_CP(7) = '1' and r_NEW_CYCLE = '1' then
+				if STATE = '0' then
+					if unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
+						STATE <= '1';
+						i_MARBus <= o_IRBus(11 DOWNTO 0);
+						i_MARTakeIn <= '1';
+					else
+						i_MARBus <= o_PCBus;
+						i_MARTakeIn <= '1';
+					end if;
+				elsif STATE = '1' then
+					if unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
+						STATE <= '0';
+						i_MARBus <= o_PCBus;
+						i_MARTakeIn <= '1';
+					end if;
 				end if;
 				i_ACCTakeIn <= '0';
 				i_ZTakeIn <= '0';
+				r_NEW_CYCLE <= '0';
 			else
 			end if;
 			

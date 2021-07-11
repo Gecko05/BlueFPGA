@@ -65,7 +65,7 @@ begin
 
 	ALUloop : process(i_CLK) begin
 		if rising_edge(i_CLK) then
-			if i_OP = "000" then -- HALD Instruction from Control Unit
+			if i_OP = "000" then -- HALT Instruction from Control Unit
 				
 			elsif i_OP = "001" then -- ADD Instruction from CU
 				RES <= ADD_RES(15 DOWNTO 0);
