@@ -21,23 +21,26 @@ class Inst(Enum):
     CSA = 14
     NOP = 15
 
-codeDict = {"HALT" : Inst.HALT,
-            "ADD" : Inst.ADD,
-            "XOR" : Inst.XOR,
-            "AND" : Inst.AND,
-            "IOR" : Inst.IOR,
-            "NOT" : Inst.NOT,
-            "LDA" : Inst.LDA,
-            "STA" : Inst.STA,
-            "SRJ" : Inst.SRJ,
-            "JMA" : Inst.JMA,
-            "JMP" : Inst.JMP,
-            "INP" : Inst.INP,
-            "OUT" : Inst.OUT,
-            "RAL" : Inst.RAL,
-            "CSA" : Inst.CSA,
-            "NOP" : Inst.NOP,
+codeDict = {"HALT" : 0,
+            "ADD" : 1,
+            "XOR" : 2,
+            "AND" : 3,
+            "IOR" : 4,
+            "NOT" : 5,
+            "LDA" : 6,
+            "STA" : 7,
+            "SRJ" : 8,
+            "JMA" : 9,
+            "JMP" : 10,
+            "INP" : 11,
+            "OUT" : 12,
+            "RAL" : 13,
+            "CSA" : 14,
+            "NOP" : 15,
             }
+
+noArgs = [0, 15, 5]
+
 
 def main(argv):
     inputfile = ''
@@ -61,27 +64,40 @@ def main(argv):
                 outputfile = arg
         elif opt == '-b':
             print('Generating ram.coe')
-            outputfile = 'ram_test.coe'
+            outputfile = 'ram.coe'
     if inputfile == '' or outputfile == '':
+        print("Missing i/o filenames")
         sys.exit()
     inFile = open(inputfile, 'r')
     outFile = open(outputfile, 'w+')
     readData = inFile.read().split('\n')
     print(readData)
+    outFile.write("memory_initialization_radix=16;\
+                  \nmemory_initialization_vector=\n")
     for line in readData:
         if line[0:2] == '//':
             pass
-        try:
-            stmnt = line.split(" ")
-        except:
-            print("Invalid syntax")
-            break
-        if not(stmnt[0] in codeDict):
-            print("Invalid syntax")
-            break
-        machCode = codeDict[stmnt]
-        hexCode = str(hex(machCode))[2:]
-        outFile.write(hexCode + ",\n")
+        else:
+            try:
+                stmnt = line.split(" ")
+            except:
+                print("Invalid syntax")
+                break
+            if not(stmnt[0] in codeDict):
+                hexCode = stmnt[0]
+            else:
+                machCode = codeDict[stmnt[0]] * (16**3)
+                if machCode in noArgs:
+                    pass
+                else:
+                    try:
+                        machCode += int(stmnt[1])
+                    except:
+                        print("Missing argument")
+                print(machCode)
+                hexCode = ("{0:#0{1}x}".format(machCode, 6)[2:]).upper()
+            print(hexCode)
+            outFile.write(hexCode + ",\n")
     inFile.close()
     outFile.close()
 
