@@ -3,19 +3,31 @@
 
 #include "Instructions.h"
 
+#define RAM_LENGTH 4096
+typedef uint16_t register_t;
+
+bool fetch = false;
+bool power = false;
+bool transfer = false;
+
+register_t PC, ACC, Z, MAR, MBR, INS;
+uint16_t RAM[RAM_LENGTH];
+uint8_t clock_pulse = 0; // Each pulse, this will increment
+
+void press_ON()
+{
+	power = true;
+}
+
+void press_OFF()
+{
+	power = false;
+}
+
 // Sample program
 uint16_t program[2] = {
 	0xF000,
 };
-
-#define RAM_LENGTH 4096
-
-uint16_t RAM[RAM_LENGTH];
-
-uint8_t clock_pulse = 0; // Each pulse, this will increment
-typedef uint16_t register_t;
-
-register_t PC, ACC, Z, MAR, MBR, INS;
 
 void tick_clock()
 {
@@ -27,8 +39,10 @@ void emulateCycle()
 {
 	while (clock_pulse < 7)
 	{
-		tick_clock();
-		process_tick(HLT, clock_pulse);
+		if (power == true) {
+			tick_clock();
+			process_tick(HLT, clock_pulse);
+		}
 	}
 	clock_pulse = 0;
 }
