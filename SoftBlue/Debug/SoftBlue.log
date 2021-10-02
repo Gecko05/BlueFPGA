@@ -1,0 +1,27 @@
+﻿  clock.cpp
+C:\Users\Gecko\source\repos\SoftBlue\clock.h(6,1): error C2143: syntax error: missing ';' before '}'
+C:\Users\Gecko\source\repos\SoftBlue\clock.cpp(4,1): error C2011: 'Clock': 'class' type redefinition
+C:\Users\Gecko\source\repos\SoftBlue\clock.h(3): message : see declaration of 'Clock'
+C:\Users\Gecko\source\repos\SoftBlue\clock.cpp(11,8): error C2027: use of undefined type 'Clock'
+C:\Users\Gecko\source\repos\SoftBlue\clock.h(3): message : see declaration of 'Clock'
+C:\Users\Gecko\source\repos\SoftBlue\clock.cpp(12,1): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+C:\Users\Gecko\source\repos\SoftBlue\clock.cpp(14,1): warning C4508: '{ctor}': function should return a value; 'void' return type assumed
+  Instructions.cpp
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(7,3): error C2065: 'do_HLT': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(8,3): error C2065: 'do_ADD': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(9,3): error C2065: 'do_XOR': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(10,3): error C2065: 'do_IOR': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(11,3): error C2065: 'do_NOT': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(12,3): error C2065: 'do_LDA': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(13,3): error C2065: 'do_STA': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(14,3): error C2065: 'do_SRJ': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(15,3): error C2065: 'do_JMA': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(16,3): error C2065: 'do_JMP': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(17,3): error C2065: 'do_INP': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(18,3): error C2065: 'do_OUT': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(19,3): error C2065: 'do_RAL': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(20,3): error C2065: 'do_CSA': undeclared identifier
+C:\Users\Gecko\source\repos\SoftBlue\Instructions.cpp(21,3): error C2065: 'do_NOP': undeclared identifier
+  main.cpp
+C:\Users\Gecko\source\repos\SoftBlue\main.cpp(24,3): error C3861: 'tick_clock': identifier not found
+  Generating Code...

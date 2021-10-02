@@ -1,0 +1,2 @@
+C:\Users\Gecko\source\repos\SoftBlue\x64\Debug\SoftBlue.exe
+C:\Users\Gecko\source\repos\SoftBlue\x64\Debug\SoftBlue.pdb

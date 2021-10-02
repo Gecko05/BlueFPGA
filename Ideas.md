@@ -1,3 +1,7 @@
+# Emulator
+
+A software emulator would be handy.
+
 # Interfaces
 
 ## Loading new values into the RAM from PC

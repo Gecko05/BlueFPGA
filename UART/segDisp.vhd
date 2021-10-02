@@ -32,8 +32,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity segDisp is
 	PORT(
 		i_CLK_100MHz : in STD_LOGIC;
-		o_SevenSegment : out STD_LOGIC_VECTOR (0 TO 7);
-		o_SevenSegmentEnable : out STD_LOGIC_VECTOR (2 DOWNTO 0);
+		o_SevenSegment : out STD_LOGIC_VECTOR (0 TO 7) := "0000000";
+		o_SevenSegmentEnable : out STD_LOGIC_VECTOR (2 DOWNTO 0) := "101";
 		signal i_DATA : STD_LOGIC_VECTOR(7 DOWNTO 0)
 	);
 end segDisp;
