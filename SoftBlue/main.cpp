@@ -32,8 +32,14 @@ void press_OFF()
 }
 
 // Sample program
-uint16_t program[2] = {
+uint16_t program[8] = {
 	0xF000,
+	0xA003,
+	0x0000,
+	0x1005,
+	0x1006,
+	0x0005,
+	0x0008,
 	0x0000,
 };
 
@@ -54,20 +60,25 @@ void do_ADD(uint8_t tick)
 			Z = 0;
 		else if (tick == 6)
 			Z = A;
-		else if (tick == 7)
+		else if (tick == 7){
 			MAR = (IR & 0x0FFF);
 			fetch = false;
+		}
 	}
 	else {
 		if (tick == 2)
 			A = MBR = 0;
 		if (tick == 3)
 			MBR = RAM[MAR];
-		else if (tick == 6)
+		else if (tick == 6) {
+			uint32_t result = Z + MBR;
+			if (Z & 0x8000) && (MBR & 0x8000)
 			A = Z + MBR;
-		else if (tick == 7)
+		}
+		else if (tick == 7) {
 			MAR = PC;
 			fetch = true;
+		}
 	}
 }
 void do_XOR(uint8_t tick)
@@ -78,9 +89,10 @@ void do_XOR(uint8_t tick)
 			Z = 0;
 		else if (tick == 6)
 			Z = A;
-		else if (tick == 7)
+		else if (tick == 7) {
 			MAR = (IR & 0x0FFF);
-		fetch = false;
+			fetch = false;
+		}
 	}
 	else {
 		if (tick == 2)
@@ -89,9 +101,10 @@ void do_XOR(uint8_t tick)
 			MBR = RAM[MAR];
 		else if (tick == 6)
 			A = Z ^ MBR;
-		else if (tick == 7)
+		else if (tick == 7) {
 			MAR = PC;
-		fetch = true;
+			fetch = true;
+		}
 	}
 }
 void do_AND(uint8_t tick)
@@ -102,9 +115,10 @@ void do_AND(uint8_t tick)
 			Z = 0;
 		else if (tick == 6)
 			Z = A;
-		else if (tick == 7)
+		else if (tick == 7) {
 			MAR = (IR & 0x0FFF);
-		fetch = false;
+			fetch = false;
+		}
 	}
 	else {
 		if (tick == 2)
@@ -113,9 +127,10 @@ void do_AND(uint8_t tick)
 			MBR = RAM[MAR];
 		else if (tick == 6)
 			A = Z & MBR;
-		else if (tick == 7)
+		else if (tick == 7) {
 			MAR = PC;
-		fetch = true;
+			fetch = true;
+		}
 	}
 }
 void do_IOR(uint8_t tick)
@@ -126,9 +141,10 @@ void do_IOR(uint8_t tick)
 			Z = 0;
 		else if (tick == 6)
 			Z = A;
-		else if (tick == 7)
+		else if (tick == 7) {
 			MAR = (IR & 0x0FFF);
-		fetch = false;
+			fetch = false;
+		}
 	}
 	else {
 		if (tick == 2)
@@ -137,9 +153,10 @@ void do_IOR(uint8_t tick)
 			MBR = RAM[MAR];
 		else if (tick == 6)
 			A = Z | MBR;
-		else if (tick == 7)
+		else if (tick == 7) {
 			MAR = PC;
-		fetch = true;
+			fetch = true;
+		}
 	}
 }
 void do_NOT(uint8_t tick)
@@ -160,7 +177,18 @@ void do_SRJ(uint8_t tick)
 }
 void do_JMA(uint8_t tick)
 {
-	std::cout << "Hello" << std::endl;
+	std::cout << "JMA" << std::endl;
+	if (tick == 5){
+		if ((A & 0x8000))
+			PC = 0;
+	}
+	else if (tick == 6){
+		if ((A & 0x8000))
+			PC = (IR & 0x0FFF);
+	}
+	else if (tick == 7) {
+		MAR = PC;
+	}
 }
 void do_JMP(uint8_t tick)
 {
@@ -231,9 +259,10 @@ void process_tick(uint8_t tick)
 			MBR = 0x00;
 		break;
 	case 4:
-		if (fetch == true)
+		if (fetch == true) {
 			IR = 0x00;
 			MBR = RAM[MAR];
+		}
 		break;
 	case 5:
 		if (fetch == true)
@@ -253,12 +282,11 @@ void process_tick(uint8_t tick)
 void tick_clock()
 {
 	clock_pulse++;
-	clock_pulse %= 8;
 }
 
 void emulateCycle()
 {
-	while (clock_pulse < 7)
+	while (clock_pulse < 8)
 	{
 		process_tick(clock_pulse);
 		tick_clock();
@@ -271,7 +299,7 @@ int main(int argc, char* argv[])
 	std::cout << "Running soft blue" << std::endl;
 	std::cout << "Copying program to the RAM" << std::endl;
 	memset(RAM, 0x00, RAM_LENGTH);
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		RAM[i] = program[i];
 	}
@@ -281,9 +309,10 @@ int main(int argc, char* argv[])
 		emulateCycle();
 		while (power == false) {
 			std::cout << "Stopped" << std::endl;
-			if (getchar())
+			if (getchar()) {
 				power = true;
 				std::cout << "Resuming..." << std::endl;
+			}
 		}
 	}
 	return 0;
