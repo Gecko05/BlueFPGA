@@ -21,5 +21,3 @@ typedef const enum {
 	NOP,
 	INSTRUCTIONS,
 } Instruction;
-
-void process_tick(Instruction instruction, uint8_t tick);
