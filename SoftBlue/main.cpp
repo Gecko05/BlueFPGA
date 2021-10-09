@@ -317,37 +317,31 @@ void runProgram(const uint16_t* program)
 	press_ON();
 	for (;;)
 	{
-		char inputChar = 'c';
+		char inputChar = 0;
 
 		emulateCycle();
 		if (printRegistersEveryCycle)
 			dumpRegisters();
 		while (power == false) {
 			std::cout << "Stopped" << std::endl;
-			char inputChar = getchar();
-		}
-		if (inputChar == 'c') {
-			power = true;
-			std::cout << "Resuming..." << std::endl;
-		}
-		else if (inputChar == 'q')
-		{
-			std::cout << "Stopping..." << std::endl;
-			break;
+			inputChar = getchar();
+			if (inputChar == 'c') {
+				power = true;
+				std::cout << "Resuming..." << std::endl;
+			}
+			else if (inputChar == 'q') {
+				std::cout << "Stopping..." << std::endl;
+				goto quit;
+			}
 		}
 	}
-	std::cout << "Finished execution" << std::endl;
+	quit: std::cout << "Finished execution" << std::endl;
 }
 
 int main(int argc, char* argv[])
 {
 	std::cout << "Running soft blue" << std::endl;
 	std::cout << "Copying program to the RAM" << std::endl;
-	memset(RAM, 0x00, RAM_LENGTH);
-	for (int i = 0; i < 8; i++) {
-		RAM[i] = program0[i];
-	}
-	press_ON();
 	runProgram(program0);
 	return 0;
 }
