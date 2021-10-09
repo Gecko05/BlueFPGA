@@ -6,6 +6,8 @@
 #define RAM_LENGTH 4096
 typedef uint16_t register_t;
 
+bool printRegistersEveryCycle = true;
+
 bool fetch = true;
 bool power = false;
 bool transfer = false;
@@ -32,7 +34,7 @@ void press_OFF()
 }
 
 // Sample program
-uint16_t program[8] = {
+uint16_t program0[8] = {
 	0xF000,
 	0xA003,
 	0x0000,
@@ -46,7 +48,6 @@ uint16_t program[8] = {
 
 void do_HLT(uint8_t tick)
 {
-	std::cout << "HLT" << std::endl;
 	if (tick == 6)
 		power = false;
 	else if (tick == 7)
@@ -54,7 +55,6 @@ void do_HLT(uint8_t tick)
 }
 void do_ADD(uint8_t tick)
 {
-	std::cout << "ADD" << std::endl;
 	if (fetch == true) {
 		if (tick == 5)
 			Z = 0;
@@ -72,8 +72,11 @@ void do_ADD(uint8_t tick)
 			MBR = RAM[MAR];
 		else if (tick == 6) {
 			uint32_t result = Z + MBR;
-			if (Z & 0x8000) && (MBR & 0x8000)
-			A = Z + MBR;
+			if ((Z & 0x8000) && (MBR & 0x8000) && !(result & 0x8000))
+				power = false; // Negative overflow
+			else if (!(Z & 0x8000) && !(MBR & 0x8000) && (result & 0x8000))
+				power = false; // Positive overflow
+			A = static_cast<uint16_t>(result);
 		}
 		else if (tick == 7) {
 			MAR = PC;
@@ -83,7 +86,6 @@ void do_ADD(uint8_t tick)
 }
 void do_XOR(uint8_t tick)
 {
-	std::cout << "XOR" << std::endl;
 	if (fetch == true) {
 		if (tick == 5)
 			Z = 0;
@@ -109,7 +111,6 @@ void do_XOR(uint8_t tick)
 }
 void do_AND(uint8_t tick)
 {
-	std::cout << "AND" << std::endl;
 	if (fetch == true) {
 		if (tick == 5)
 			Z = 0;
@@ -135,7 +136,6 @@ void do_AND(uint8_t tick)
 }
 void do_IOR(uint8_t tick)
 {
-	std::cout << "IOR" << std::endl;
 	if (fetch == true) {
 		if (tick == 5)
 			Z = 0;
@@ -177,7 +177,6 @@ void do_SRJ(uint8_t tick)
 }
 void do_JMA(uint8_t tick)
 {
-	std::cout << "JMA" << std::endl;
 	if (tick == 5){
 		if ((A & 0x8000))
 			PC = 0;
@@ -192,7 +191,6 @@ void do_JMA(uint8_t tick)
 }
 void do_JMP(uint8_t tick)
 {
-	std::cout << "JMP" << std::endl;
 	if (tick == 5)
 		PC = 0;
 	else if (tick == 6)
@@ -218,7 +216,6 @@ void do_CSA(uint8_t tick)
 }
 void do_NOP(uint8_t tick)
 {
-	std::cout << "NOP" << std::endl;
 	if (tick == 7)
 		MAR = PC;
 }
@@ -294,26 +291,63 @@ void emulateCycle()
 	clock_pulse = 0;
 }
 
+void dumpRegisters()
+{
+	std::cout << "A: " << std::hex << A << " PC: " << PC <<
+		" IR: " << IR << " Z: " << Z <<
+		" MAR: " << MAR << " MBR: " << MBR << std::endl;
+}
+
+void dumpRAM()
+{
+	std::cout << "==== RAM ====" << std::endl;
+	for (int i = 0; i < RAM_LENGTH; i++) {
+		std::cout << std::hex << RAM[i] << " ";
+		if (i % 8 == 0) {
+			std::cout << std::endl;
+		}
+	}
+}
+
+void runProgram(const uint16_t* program)
+{
+	std::cout << "Copying program to the RAM" << std::endl;
+	memset(RAM, 0x00, (RAM_LENGTH * sizeof(uint16_t)));
+	memcpy(RAM, program, (RAM_LENGTH * sizeof(uint16_t)));
+	press_ON();
+	for (;;)
+	{
+		char inputChar = 'c';
+
+		emulateCycle();
+		if (printRegistersEveryCycle)
+			dumpRegisters();
+		while (power == false) {
+			std::cout << "Stopped" << std::endl;
+			char inputChar = getchar();
+		}
+		if (inputChar == 'c') {
+			power = true;
+			std::cout << "Resuming..." << std::endl;
+		}
+		else if (inputChar == 'q')
+		{
+			std::cout << "Stopping..." << std::endl;
+			break;
+		}
+	}
+	std::cout << "Finished execution" << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
 	std::cout << "Running soft blue" << std::endl;
 	std::cout << "Copying program to the RAM" << std::endl;
 	memset(RAM, 0x00, RAM_LENGTH);
-	for (int i = 0; i < 8; i++)
-	{
-		RAM[i] = program[i];
+	for (int i = 0; i < 8; i++) {
+		RAM[i] = program0[i];
 	}
 	press_ON();
-	for (;;)
-	{
-		emulateCycle();
-		while (power == false) {
-			std::cout << "Stopped" << std::endl;
-			if (getchar()) {
-				power = true;
-				std::cout << "Resuming..." << std::endl;
-			}
-		}
-	}
+	runProgram(program0);
 	return 0;
 }
