@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include <string.h>
 #include <vector>
@@ -22,18 +23,6 @@ blue_register IR;
 uint16_t RAM[RAM_LENGTH];
 uint8_t clock_pulse = 0; // Each pulse, this will increment
 
-void press_ON()
-{
-	std::cout << "Pressed ON" << std::endl;
-	power = true;
-}
-
-void press_OFF()
-{
-	std::cout << "Pressed OFF" << std::endl;
-	power = false;
-}
-
 // Sample program
 uint16_t program0[8] = {
 	0xF000,
@@ -46,6 +35,17 @@ uint16_t program0[8] = {
 	0x0000,
 };
 
+void press_ON()
+{
+	std::cout << "Pressed ON" << std::endl;
+	power = true;
+}
+
+void press_OFF()
+{
+	std::cout << "Pressed OFF" << std::endl;
+	power = false;
+}
 
 void do_HLT(uint8_t tick)
 {
@@ -304,7 +304,7 @@ void dumpRAM()
 	std::cout << "==== RAM ====" << std::endl;
 	for (int i = 0; i < RAM_LENGTH; i++) {
 		std::cout << std::hex << RAM[i] << " ";
-		if (i % 8 == 0) {
+		if ((i % 16 == 0) && (i != 0)) {
 			std::cout << std::endl;
 		}
 	}
@@ -329,6 +329,9 @@ void runProgram(const uint16_t* program)
 			if (inputChar == 'c') {
 				power = true;;
 			}
+			if (inputChar == 'r'){
+				dumpRAM();
+			}
 			else if (inputChar == 'q') {
 				std::cout << "Stopping..." << std::endl;
 				goto quit;
@@ -341,7 +344,26 @@ void runProgram(const uint16_t* program)
 int main(int argc, char* argv[])
 {
 	std::cout << "Running soft blue" << std::endl;
-	std::cout << "Copying program to the RAM" << std::endl;
-	runProgram(program0);
+	uint16_t program_data[RAM_LENGTH];
+	uint16_t* program = program0;
+
+	if ((argc == 2) && (argv[1])){
+		std::ifstream program_file;
+		program_file.open(argv[1]);
+		if (!program_file){
+			std::cout << "Failed to open the program file" << std::endl;
+			return 0;
+		}
+		
+		program_file.read((char*)program_data, RAM_LENGTH);
+		for (int i = 0; i < 30; i++){
+			std::cout << program_data[i] << std::endl;
+		}
+		
+		program = program_data;
+		program_file.close();
+	}
+
+	runProgram(program);
 	return 0;
 }
