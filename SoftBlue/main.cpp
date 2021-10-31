@@ -354,12 +354,7 @@ int main(int argc, char* argv[])
 			std::cout << "Failed to open the program file" << std::endl;
 			return 0;
 		}
-		
 		program_file.read((char*)program_data, RAM_LENGTH);
-		for (int i = 0; i < 30; i++){
-			std::cout << program_data[i] << std::endl;
-		}
-		
 		program = program_data;
 		program_file.close();
 	}
