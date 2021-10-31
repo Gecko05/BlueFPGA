@@ -1,10 +1,11 @@
 #include <iostream>
+#include <string.h>
 #include <vector>
 
 #include "Instructions.h"
 
 #define RAM_LENGTH 4096
-typedef uint16_t register_t;
+typedef uint16_t blue_register;
 
 bool printRegistersEveryCycle = true;
 
@@ -12,12 +13,12 @@ bool fetch = true;
 bool power = false;
 bool transfer = false;
 
-register_t PC = 0x00;
-register_t A;
-register_t Z;
-register_t MAR;
-register_t MBR;
-register_t IR;
+blue_register PC = 0x00;
+blue_register A;
+blue_register Z;
+blue_register MAR;
+blue_register MBR;
+blue_register IR;
 uint16_t RAM[RAM_LENGTH];
 uint8_t clock_pulse = 0; // Each pulse, this will increment
 
@@ -323,11 +324,10 @@ void runProgram(const uint16_t* program)
 		if (printRegistersEveryCycle)
 			dumpRegisters();
 		while (power == false) {
-			std::cout << "Stopped" << std::endl;
+			std::cout << "..." << std::endl;
 			inputChar = getchar();
 			if (inputChar == 'c') {
-				power = true;
-				std::cout << "Resuming..." << std::endl;
+				power = true;;
 			}
 			else if (inputChar == 'q') {
 				std::cout << "Stopping..." << std::endl;

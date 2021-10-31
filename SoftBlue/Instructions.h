@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BLUE_INSTRUCTIONS_H
+#define BLUE_INSTRUCTIONS_H
 
 #include <stdint.h>
 
@@ -21,3 +22,5 @@ typedef const enum {
 	NOP,
 	INSTRUCTIONS,
 } Instruction;
+
+#endif // BLUE_INSTRUCTIONS_H
