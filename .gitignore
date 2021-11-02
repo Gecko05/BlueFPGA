@@ -18,3 +18,5 @@ SoftBlue/x64/Debug/main.obj
 SoftBlue/main.o
 SoftBlue/main
 SoftBlue/Instructions.o
+SoftBlue/*.o
+SoftBlue/blue

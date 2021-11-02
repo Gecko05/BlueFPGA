@@ -10,13 +10,21 @@ typedef uint16_t blue_register;
 
 bool printRegistersEveryCycle = true;
 
-bool fetch = true;
+typedef enum {
+	EXECUTE,
+	FETCH,
+} State;
+
+State STATE = FETCH;
 bool power = false;
 bool transfer = false;
 
 blue_register PC = 0x00;
 blue_register A;
 blue_register Z;
+blue_register SR;
+// There're multiple ways to handle MAR/MBR. Using either pointers, references
+// or operator overloading.
 blue_register MAR;
 blue_register MBR;
 blue_register IR;
@@ -54,22 +62,23 @@ void do_HLT(uint8_t tick)
 	else if (tick == 7)
 		MAR = PC;
 }
+
 void do_ADD(uint8_t tick)
 {
-	if (fetch == true) {
+	if (STATE == FETCH) {
 		if (tick == 5)
 			Z = 0;
 		else if (tick == 6)
 			Z = A;
 		else if (tick == 7){
 			MAR = (IR & 0x0FFF);
-			fetch = false;
+			STATE = EXECUTE;
 		}
 	}
 	else {
 		if (tick == 2)
 			A = MBR = 0;
-		if (tick == 3)
+		else if (tick == 3)
 			MBR = RAM[MAR];
 		else if (tick == 6) {
 			uint32_t result = Z + MBR;
@@ -81,140 +90,235 @@ void do_ADD(uint8_t tick)
 		}
 		else if (tick == 7) {
 			MAR = PC;
-			fetch = true;
+			STATE = FETCH;
 		}
 	}
 }
+
 void do_XOR(uint8_t tick)
 {
-	if (fetch == true) {
+	if (STATE == FETCH) {
 		if (tick == 5)
 			Z = 0;
 		else if (tick == 6)
 			Z = A;
 		else if (tick == 7) {
 			MAR = (IR & 0x0FFF);
-			fetch = false;
+			STATE = EXECUTE;
 		}
 	}
 	else {
 		if (tick == 2)
 			A = MBR = 0;
-		if (tick == 3)
+		else if (tick == 3)
 			MBR = RAM[MAR];
 		else if (tick == 6)
 			A = Z ^ MBR;
 		else if (tick == 7) {
 			MAR = PC;
-			fetch = true;
+			STATE = FETCH;
 		}
 	}
 }
+
 void do_AND(uint8_t tick)
 {
-	if (fetch == true) {
+	if (STATE == FETCH) {
 		if (tick == 5)
 			Z = 0;
 		else if (tick == 6)
 			Z = A;
 		else if (tick == 7) {
 			MAR = (IR & 0x0FFF);
-			fetch = false;
+			STATE = EXECUTE;
 		}
 	}
 	else {
 		if (tick == 2)
 			A = MBR = 0;
-		if (tick == 3)
+		else if (tick == 3)
 			MBR = RAM[MAR];
 		else if (tick == 6)
 			A = Z & MBR;
 		else if (tick == 7) {
 			MAR = PC;
-			fetch = true;
+			STATE = FETCH;
 		}
 	}
 }
+
 void do_IOR(uint8_t tick)
 {
-	if (fetch == true) {
+	if (STATE == FETCH) {
 		if (tick == 5)
 			Z = 0;
 		else if (tick == 6)
 			Z = A;
 		else if (tick == 7) {
 			MAR = (IR & 0x0FFF);
-			fetch = false;
+			STATE = EXECUTE;
 		}
 	}
 	else {
 		if (tick == 2)
 			A = MBR = 0;
-		if (tick == 3)
+		else if (tick == 3)
 			MBR = RAM[MAR];
 		else if (tick == 6)
 			A = Z | MBR;
 		else if (tick == 7) {
 			MAR = PC;
-			fetch = true;
+			STATE = FETCH;
 		}
 	}
 }
+
 void do_NOT(uint8_t tick)
 {
-	std::cout << "NOT" << std::endl;
+	if (STATE == FETCH) {
+		if (tick == 5)
+			Z = 0;
+		else if (tick == 6)
+			Z = A;
+		else if (tick == 7) {
+			STATE = EXECUTE;
+		}
+	}
+	else {
+		if (tick == 0)
+			A = 0;
+		else if (tick == 1)
+			A = ~Z;
+		else if (tick == 7) {
+			MAR = PC;
+			STATE = FETCH;
+		}
+	}
 }
+
 void do_LDA(uint8_t tick)
 {
-	std::cout << "Hello" << std::endl;
+	if (STATE == FETCH) {
+		if (tick == 7) {
+			STATE = EXECUTE;
+			MAR = (IR & 0x0FFF);
+		}
+	} else if (STATE == EXECUTE) {
+		if (tick == 1) {
+			A = 0;
+		} else if (tick == 2) {
+			MBR = 0;
+		} else if (tick == 4) {
+			A = MBR = RAM[MAR];
+		} else if (tick == 7) {
+			MAR = PC;
+			STATE = FETCH;
+		}
+	}
 }
+
 void do_STA(uint8_t tick)
 {
-	std::cout << "Hello" << std::endl;
+	if (STATE == FETCH) {
+		if (tick == 7) {
+			STATE = EXECUTE;
+			MAR = (IR & 0x0FFF);
+		}
+	} else if (STATE == EXECUTE) {
+		if (tick == 1) {
+			A = 0;
+		} else if (tick == 3) {
+			MBR = 0;
+		} else if (tick == 4) {
+			RAM[MAR] = MBR = A;
+		} else if (tick == 7) {
+			MAR = PC;
+			STATE = FETCH;
+		}
+	}
 }
+
 void do_SRJ(uint8_t tick)
 {
-	std::cout << "Hello" << std::endl;
+	if (tick == 5) {
+		A = (PC & 0x0FFF);
+	} else if (tick == 6) {
+		PC = 0;
+	} else if (tick == 7) {
+		MAR = PC = (IR & 0x0FFF);
+	}
 }
+
 void do_JMA(uint8_t tick)
 {
-	if (tick == 5){
-		if ((A & 0x8000))
+	if (tick == 5) {
+		if ((A & 0x8000)) {
 			PC = 0;
-	}
-	else if (tick == 6){
-		if ((A & 0x8000))
+		}
+	} else if (tick == 6) {
+		if ((A & 0x8000)) {
 			PC = (IR & 0x0FFF);
-	}
-	else if (tick == 7) {
+		}
+	} else if (tick == 7) {
 		MAR = PC;
 	}
 }
+
 void do_JMP(uint8_t tick)
 {
-	if (tick == 5)
+	if (tick == 5) {
 		PC = 0;
-	else if (tick == 6)
+	} else if (tick == 6) {
 		PC = (IR & 0x0FFF);
-	else if (tick == 7)
+	} else if (tick == 7) {
 		MAR = PC;
+	}
 }
+
 void do_INP(uint8_t tick)
 {
 	std::cout << "Hello" << std::endl;
 }
+
 void do_OUT(uint8_t tick)
 {
 	std::cout << "Hello" << std::endl;
 }
+
 void do_RAL(uint8_t tick)
 {
-	std::cout << "Hello" << std::endl;
+	if (STATE == FETCH) {
+		if (tick == 5) {
+			Z = 0;
+		} else if (tick == 6) {
+			Z = A;
+		} else if (tick == 7) {
+			STATE = EXECUTE;
+		}
+	}
+	else {
+		if (tick == 0) {
+			A = 0;
+		} else if (tick == 1) {
+			A = ((Z & 0x8000) >> 15) | (Z * 2);
+		} else if (tick == 7) {
+			MAR = PC;
+			STATE = FETCH;
+		}
+	}
 }
+
 void do_CSA(uint8_t tick)
 {
-	std::cout << "Hello" << std::endl;
+	if (tick == 5) {
+		A = 0;
+	} else if (tick == 6) {
+		A = SR;
+	} else if (tick == 7) {
+		MAR = PC;
+	}
 }
+
 void do_NOP(uint8_t tick)
 {
 	if (tick == 7)
@@ -249,21 +353,21 @@ void process_tick(uint8_t tick)
 	case 0x01:
 		break;
 	case 2:
-		if (fetch == true)
+		if (STATE == FETCH)
 			PC += 1;
 		break;
 	case 3:
-		if (fetch == true)
+		if (STATE == FETCH)
 			MBR = 0x00;
 		break;
 	case 4:
-		if (fetch == true) {
+		if (STATE == FETCH) {
 			IR = 0x00;
 			MBR = RAM[MAR];
 		}
 		break;
 	case 5:
-		if (fetch == true)
+		if (STATE == FETCH)
 			IR = MBR;
 		break;
 	case 6:
