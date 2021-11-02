@@ -20,3 +20,7 @@ SoftBlue/main
 SoftBlue/Instructions.o
 SoftBlue/*.o
 SoftBlue/blue
+.vscode/dryrun.log
+.vscode/configurationCache.log
+.vscode/targets.log
+SoftBlue/blueprogram
