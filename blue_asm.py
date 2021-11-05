@@ -4,7 +4,7 @@ from enum import Enum
 import getopt
 
 class Inst(Enum):
-    HALT = 0
+    HLT = 0
     ADD = 1
     XOR = 2
     AND = 3
@@ -21,7 +21,7 @@ class Inst(Enum):
     CSA = 14
     NOP = 15
 
-codeDict = {"HALT" : 0,
+codeDict = {"HLT" : 0,
             "ADD" : 1,
             "XOR" : 2,
             "AND" : 3,
@@ -76,7 +76,7 @@ def main(argv):
                   \nmemory_initialization_vector=\n")
     for line in readData:
         if line[0:2] == '//':
-            pass
+            pass # This was a comment
         else:
             try:
                 stmnt = line.split(" ")
