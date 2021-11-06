@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/SoftBlue/blue",
             "args": ["blueprogram"],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
             "externalConsole": false,
