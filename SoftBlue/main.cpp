@@ -17,7 +17,7 @@ typedef enum {
 
 State STATE = FETCH;
 bool power = false;
-bool transfer = false;
+bool TRA = false;
 
 blue_register PC = 0x00;
 blue_register A;
@@ -28,7 +28,11 @@ blue_register SR;
 blue_register MAR;
 blue_register MBR;
 blue_register IR;
+
 uint16_t RAM[RAM_LENGTH];
+uint8_t DSL;
+uint8_t DIL;
+uint8_t R;
 uint8_t clock_pulse = 0; // Each pulse, this will increment
 
 // Sample program
@@ -277,7 +281,32 @@ void do_JMP(uint8_t tick)
 
 void do_INP(uint8_t tick)
 {
+	if (STATE == FETCH) {
+		if (tick == 5) {
+			A = 0;
+			DSL = (0x003F & IR);
+		} else if (tick == 6) {
+			TRA = true;
+		} else if (tick == 7) {
+			STATE = EXECUTE;
+		}
+	} else if (STATE == EXECUTE) {
+		if (tick == 4) {
+			R = true;
+			A = DIL;
+		} else if (tick == 5) {
+			if (R == true)
+				TRA = false;
+		} else if (tick == 7) {
+			if (TRA == false) {
+				STATE = FETCH;
+				MAR = PC;
+			}
+		}
+	}
 	std::cout << "Hello" << std::endl;
+	A = 0;
+
 }
 
 void do_OUT(uint8_t tick)
@@ -420,8 +449,7 @@ void runProgram(const uint16_t* program)
 	memset(RAM, 0x00, (RAM_LENGTH * sizeof(uint16_t)));
 	memcpy(RAM, program, (RAM_LENGTH * sizeof(uint16_t)));
 	press_ON();
-	for (;;)
-	{
+	for (;;) {
 		char inputChar = 0;
 
 		emulateCycle();
