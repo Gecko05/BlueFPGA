@@ -42,7 +42,7 @@ ARCHITECTURE behavior OF UART_RXTest IS
     COMPONENT UART_RX
     PORT(
          i_RX : IN  std_logic;
-         i_CLK100MHz : IN  std_logic
+         i_CLK_100MHz : IN  std_logic
         );
     END COMPONENT;
     
@@ -60,7 +60,7 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
    uut: UART_RX PORT MAP (
           i_RX => i_RX,
-          i_CLK100MHz => i_CLK100MHz
+          i_CLK_100MHz => i_CLK100MHz
         );
 
    -- Clock process definitions

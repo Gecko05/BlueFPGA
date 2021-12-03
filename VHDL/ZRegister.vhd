@@ -22,7 +22,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
@@ -40,13 +40,13 @@ entity ZRegister is
 end ZRegister;
 
 architecture Behavioral of ZRegister is
-	signal ZVal : STD_LOGIC_VECTOR(11 DOWNTO 0) := "000000000000";
+	signal ZVal : STD_LOGIC_VECTOR(15 DOWNTO 0) := "0000000000000000";
 begin
-	ZLoop : process (i_ZClear, i_ZTakeIn, i_ZBus, i_Clock, PCCounter) begin
+	ZLoop : process (i_ZClear, i_ZTakeIn, i_ZBus, i_Clock) begin
 		if rising_edge(i_ZClear) then
-			 ZVal <= 0;
+			 ZVal <= STD_LOGIC_VECTOR(to_unsigned(0,16));
 		elsif rising_edge(i_ZTakeIn) then
-			ZVal <= to_integer(unsigned(i_ZBus));	
+			ZVal <= i_ZBus;	
 		else
 			-- Do nothing
 		end if;
