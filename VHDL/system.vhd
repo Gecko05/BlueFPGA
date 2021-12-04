@@ -366,10 +366,11 @@ begin
 			
 			-- This code is a mess, need to refactor with functions or something
 			-- Instruction tree
+			-- HALT
 			if Instruction = "0000" and o_CP(5) = '1' then
 				r_RUN <= '0';
-			elsif Instruction = "1010" then
-				-- JMP
+			-- JMP
+			elsif Instruction = "1010" then 
 				if o_CP(5) = '1' then
 					i_PCClear <= '1';
 				elsif o_CP(6) = '1' then
@@ -382,7 +383,7 @@ begin
 				end if;
 			end if;
 			
-			-- HALT
+			-- STOP Button
 			if w_STOP = '1' then
 				r_RUN  <= '0';
 			end if;
@@ -391,7 +392,7 @@ begin
 		elsif r_RUN = '0' then
 			if w_START = '1' and o_CP(7) = '1' then
 				r_RUN <= '1';
-				--i_PCClear <= '1';
+				--i_PCClear <= '1'; --Enable this to start PC from zero
 			end if;
 		end if;
 	end process;

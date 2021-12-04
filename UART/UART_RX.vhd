@@ -43,6 +43,7 @@ architecture Behavioral of UART_RX is
 	constant CLK_19200 : natural := 5208;
 	signal CLK_CNT : natural range 0 to CLK_19200;
 	signal CLK_PULSE : STD_lOGIC := '0';
+	signal LEDS : STD_LOGIC_VECTOR (0 TO 2) := "000";
 begin
 	receiveLoop : process (i_RX, i_CLK_100MHz, r_DATA) begin
 		if rising_edge(i_CLK_100MHz) then
@@ -54,7 +55,7 @@ begin
 			end if;
 			-- State machine for RX
 			if r_STATE = 0 then -- IDLE
-				o_LEDs(0) <= '1';
+				LEDS(0) <= '1';
 				if i_RX <= '0' then
 					r_STATE <= 1;
 					CLK_CNT <= 0;
@@ -63,8 +64,8 @@ begin
 			elsif r_STATE = 1 and CLK_CNT = ((CLK_19200 - 1)/2) then -- CHECK MIDDLE
 				if i_RX <= '0' then -- FOUND MIDDLE 
 					CLK_CNT <= 0;
-					o_LEDs(0) <= '0';
-					o_LEDs(1) <= '1';
+					LEDS(0) <= '0';
+					LEDS(1) <= '1';
 					CLK_PULSE <= not(CLK_PULSE);
 					r_STATE <= 2;
 					r_BIT <= 0;
@@ -72,11 +73,11 @@ begin
 			elsif r_STATE = 2 and CLK_CNT = CLK_19200 - 2 then -- GATHER DATA
 				if r_BIT = 7 then
 					r_DATA(r_BIT) <= i_RX;
-					o_LEDs(2) <= '0';
+					LEDS(2) <= '0';
 					r_STATE <= 3; -- Look for stop bit
 				elsif r_BIT < 7 then
-					o_LEDs(1) <= '0';
-					o_LEDs(2) <= '1';
+					LEDS(1) <= '0';
+					LEDS(2) <= '1';
 					r_DATA(r_BIT) <= i_RX;
 					r_BIT <= r_BIT + 1;
 				else
@@ -86,6 +87,7 @@ begin
 				r_STATE <= 0; -- Return to IDLE
 			end if;
 			o_RXDATA <= r_DATA;
+			o_LEDs <= LEDS;
 		end if;
 	end process;
 

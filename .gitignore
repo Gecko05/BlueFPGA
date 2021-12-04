@@ -15,3 +15,12 @@ SoftBlue/x64/Debug/vc142.idb
 SoftBlue/x64/Debug/vc142.pdb
 SoftBlue/.vs/SoftBlue/v16/.suo
 SoftBlue/x64/Debug/main.obj
+SoftBlue/main.o
+SoftBlue/main
+SoftBlue/Instructions.o
+SoftBlue/*.o
+SoftBlue/blue
+.vscode/dryrun.log
+.vscode/configurationCache.log
+.vscode/targets.log
+SoftBlue/blueprogram

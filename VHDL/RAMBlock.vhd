@@ -22,7 +22,7 @@
 --    devices, or systems.  Use in such applications are expressly            --
 --    prohibited.                                                             --
 --                                                                            --
---    (c) Copyright 1995-2020 Xilinx, Inc.                                    --
+--    (c) Copyright 1995-2021 Xilinx, Inc.                                    --
 --    All rights reserved.                                                    --
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -121,7 +121,7 @@ END COMPONENT;
       c_web_width => 1,
       c_write_depth_a => 4096,
       c_write_depth_b => 4096,
-      c_write_mode_a => "NO_CHANGE",
+      c_write_mode_a => "WRITE_FIRST",
       c_write_mode_b => "WRITE_FIRST",
       c_write_width_a => 16,
       c_write_width_b => 16,

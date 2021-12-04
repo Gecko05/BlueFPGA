@@ -45,35 +45,41 @@ noArgs = [0, 15, 5]
 def main(argv):
     inputfile = ''
     outputfile = ''
+    binary = True
     try:
-        opts, args = getopt.getopt(argv, "hbi:o:",["ifile=","ofile="])
+        opts, args = getopt.getopt(argv, "hri:o:",["ifile=","ofile="])
     except getopt.GetoptError:
-        print('blu.py -i <inputfile> -o <outputfile>')
+        print('blue_asm.py -i <inputfile> -o <outputfile>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print('Usage: blu.py [options] file\
+            print('Usage: blue_asm.py [options] file\
                \nOptions:\
                \n -h: help\
-               \n -b: Generate ram.coe file')
+               \n -r: Generate ram.coe file')
             sys.exit()
         elif opt in ("-i", "--ifile"):
             inputfile = arg
         elif opt in ("-o", "--ofile"):
             if outputfile == '':
                 outputfile = arg
-        elif opt == '-b':
+        elif opt == '-r':
             print('Generating ram.coe')
             outputfile = 'ram.coe'
+            binary = False
     if inputfile == '' or outputfile == '':
         print("Missing i/o filenames")
         sys.exit()
     inFile = open(inputfile, 'r')
-    outFile = open(outputfile, 'w+')
+    if binary == True:
+        outFile = open(outputfile, 'wb')
+    else:
+        outFile = open(outputfile, 'w+')
     readData = inFile.read().split('\n')
-    print(readData)
-    outFile.write("memory_initialization_radix=16;\
-                  \nmemory_initialization_vector=\n")
+    #print(readData)
+    if binary == False:
+        outFile.write("memory_initialization_radix=16;\
+                      \nmemory_initialization_vector=\n")
     for line in readData:
         if line[0:2] == '//':
             pass # This was a comment
@@ -94,10 +100,15 @@ def main(argv):
                         machCode += int(stmnt[1])
                     except:
                         print("Missing argument")
-                print(machCode)
+                #print(machCode)
                 hexCode = ("{0:#0{1}x}".format(machCode, 6)[2:]).upper()
             print(hexCode)
-            outFile.write(hexCode + ",\n")
+            if binary == True:
+                # This might need to be "big", but it works for the emulator and
+                # don't want to change it for now as there's no physical system yet.
+                outFile.write(int(hexCode, 16).to_bytes(2, "little"))
+            else:
+                outFile.write(hexCode + ",\n")
     inFile.close()
     outFile.close()
 
