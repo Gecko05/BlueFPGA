@@ -44,14 +44,15 @@ architecture Behavioral of UART_Display is
 
     COMPONENT UART_RX
     PORT(
-         i_RX : in  STD_LOGIC;
-         i_CLK_100MHz : in  STD_LOGIC;
-			o_LEDs : out STD_LOGIC_VECTOR (0 TO 2);
-			o_RXDATA : out STD_LOGIC_VECTOR (7 DOWNTO 0)
-        );
+		 i_Clk       : in  std_logic;
+		 i_RX_Serial : in  std_logic;
+		 o_RX_DV     : out std_logic;
+		 o_RX_Byte   : out std_logic_vector(7 downto 0)
+       );
     END COMPONENT;
 	 
 	 signal RX_DATA : STD_LOGIC_VECTOR (7 DOWNTO 0) := "00000000";
+	 signal RX_DV : STD_LOGIC;
 	 
 	 COMPONENT segDisp
 	 PORT(
@@ -63,10 +64,10 @@ architecture Behavioral of UART_Display is
 	 END COMPONENT;
 begin
 	RX_MODULE: UART_RX PORT MAP (
-		 i_RX => DEV_UART_RX,
-		 i_CLK_100MHz => CLK_100MHz,
-		 o_LEDs => o_LED,
-		 o_RXDATA => RX_DATA
+		 i_RX_Serial => DEV_UART_RX,
+		 i_Clk => CLK_100MHz,
+		 o_RX_DV => RX_DV,
+		 o_RX_Byte => RX_DATA
 	);
 	  
 	DISPLAY_MODULE: segDisp PORT MAP (
