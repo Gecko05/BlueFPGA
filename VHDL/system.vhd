@@ -370,7 +370,7 @@ begin
 					if o_CP(5) = '1' then
 						i_ACC <= o_MBRBus;
 						i_NUM <= o_ZBus;	
-						i_OP <= "001";
+						i_OP <= Instruction(2 DOWNTO 0);
 					elsif o_CP(6) = '1' then
 						i_ACCBus <= o_ACC;
 						i_ACCTakeIn <= '1';

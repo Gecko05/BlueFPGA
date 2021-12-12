@@ -70,6 +70,12 @@ begin
 			elsif i_OP = "001" then -- ADD Instruction from CU
 				RES <= ADD_RES(15 DOWNTO 0);
 				OVERFLOW <= (i_ACC(15) AND i_NUM(15) AND (NOT(ADD_RES(15)))) OR ((NOT(i_ACC(15))) AND (NOT(i_NUM(15))) AND ADD_RES(15));
+			elsif i_OP = "010" then
+				RES <= i_ACC xor i_NUM;
+			elsif i_OP = "011" then
+				RES <= i_ACC and i_NUM;
+			elsif i_OP = "100" then
+				RES <= i_ACC or i_NUM;
 			else
 			end if;
 		end if;
