@@ -322,38 +322,10 @@ begin
 			-- CLOCK PULSE 5
 			elsif o_CP(4) = '1' then
 				i_IRTakeIn <= '0';
-			-- CLOCK PULSE 6
-			elsif o_CP(5) = '1' then
-				if STATE = '0' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
-					i_ZClear <= '1';
-				elsif STATE = '1' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
-					i_ACC <= o_MBRBus;
-					i_NUM <= o_ZBus;
-					i_OP <= "001";
-				end if;
-			-- CLOCK PULSE 7
-			elsif o_CP(6) = '1' then
-				if STATE = '0' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
-					i_ZClear <= '0';
-					i_ZTakeIn <= '1';
-				elsif STATE = '1' and unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
-					i_ACCBus <= o_ACC;
-					i_ACCTakeIn <= '1';
-				end if;
 			-- CLOCK PULSE 8
 			elsif o_CP(7) = '1' and r_NEW_CYCLE = '1' then
 				if STATE = '0' then
-					if unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
-						STATE <= '1';
-						i_MARBus <= o_IRBus(11 DOWNTO 0);
-						i_MARTakeIn <= '1';
-					else
-						i_MARBus <= o_PCBus;
-						i_MARTakeIn <= '1';
-					end if;
-				elsif STATE = '1' then
-					if unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
-						STATE <= '0';
+					if unsigned(Instruction) >= 5 or unsigned(Instruction) = 0 then
 						i_MARBus <= o_PCBus;
 						i_MARTakeIn <= '1';
 					end if;
@@ -381,8 +353,34 @@ begin
 					i_PCTakeIn <= '0';
 					i_PCClear <= '0';
 				end if;
+			-- ADD, AND, XOR, IOR
+			elsif unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
+				if STATE = '0' then
+					if o_CP(5) = '1' then
+						i_ZClear <= '1';
+					elsif o_CP(6) = '1' then
+						i_ZClear <= '0';
+						i_ZTakeIn <= '1';
+					elsif o_CP(7) = '1' then
+						STATE <= '1';
+						i_MARBus <= o_IRBus(11 DOWNTO 0);
+						i_MARTakeIn <= '1';
+					end if;
+				else
+					if o_CP(5) = '1' then
+						i_ACC <= o_MBRBus;
+						i_NUM <= o_ZBus;	
+						i_OP <= "001";
+					elsif o_CP(6) = '1' then
+						i_ACCBus <= o_ACC;
+						i_ACCTakeIn <= '1';
+					elsif o_CP(7) = '1' then
+						STATE <= '0';
+						i_MARBus <= o_PCBus;
+						i_MARTakeIn <= '1';
+					end if;
+				end if;
 			end if;
-			
 			-- STOP Button
 			if w_STOP = '1' then
 				r_RUN  <= '0';
