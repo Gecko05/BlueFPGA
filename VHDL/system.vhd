@@ -380,6 +380,52 @@ begin
 						i_MARTakeIn <= '1';
 					end if;
 				end if;
+			elsif Instruction = "0110" then
+				if STATE = '0' then
+					if o_CP(7) = '1' then
+						STATE <= '1';
+						i_MARBus <= o_IRBus(11 DOWNTO 0);
+					end if;
+				else
+					if o_CP(1) = '1' then
+						i_ACCClear <= '1';
+					elsif o_CP(2) = '1' then
+						i_ACCClear <= '0';
+						i_MBRClear <= '1';
+					elsif o_CP(3) = '1' then
+						i_MBRClear <= '0';
+						i_ACCBus <= o_MBRBus;
+					elsif o_CP(4) = '1' then
+						i_ACCTakeIn <= '1';
+					elsif o_CP(5) = '1' then
+						i_ACCTakeIn <= '0';
+						i_ACCBus <= o_ACC;
+					elsif o_CP(7) = '1' then
+						STATE <= '0';
+						i_MARBus <= o_PCBus;
+						i_MARTakeIn <= '1';
+					end if;
+				end if;
+			elsif Instruction = "0111" then
+				if STATE = '0' then
+					if o_CP(7) = '1' then
+						STATE <= '1';
+						i_MARBus <= o_IRBus(11 DOWNTO 0);
+					end if;
+				else
+					if o_CP(3) then
+						i_MBRClear <= '1';
+					elsif o_CP(4) then
+						i_MBRBus <= o_ACCBus;
+						i_MBRTakeIn <= '1';
+					elsif o_CP(5) then
+						i_MBRTakeIn <= '0';
+					elsif o_CP(7) then
+						STATE <= '0';
+						i_MARBus <= o_PCBus;
+						i_MARTakeIn <= '1';
+					end if;
+				end if;
 			end if;
 			-- STOP Button
 			if w_STOP = '1' then
