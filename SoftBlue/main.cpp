@@ -427,7 +427,7 @@ void emulateCycle()
 
 void dumpRegisters()
 {
-	std::cout << "A: " << std::hex << A << " PC: " << PC <<
+	std::cout << " PC: " << PC << (STATE ? " E " : " F ") <<  "A: " << std::hex << A <<
 		" IR: " << IR << " Z: " << Z <<
 		" MAR: " << MAR << " MBR: " << MBR << std::endl;
 }

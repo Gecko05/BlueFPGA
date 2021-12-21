@@ -25,7 +25,7 @@
         },
         {
             "label": "assembleBlue",
-            "command": "python3",
+            "command": "python",
             "args": [
                 "${fileDirname}/blue_asm.py",
                 "-i",

@@ -13,4 +13,10 @@ JMP 12
 AND 8
 IOR 10
 XOR 11
-JMP 0
+LDA 10
+AND 9
+STA 22
+LDA 22
+ADD 2
+HLT
+// Result must be 6
