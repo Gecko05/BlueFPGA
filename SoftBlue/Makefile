@@ -1,5 +1,5 @@
 CC = g++
-CPPFLAGS = -Wall -g
+CPPFLAGS = -Wall -g -std=c++11
 OBJS = main.o Instructions.o
 DEPS = Instructions.h
 OUTEXEC = blue

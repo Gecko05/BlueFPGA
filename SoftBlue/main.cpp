@@ -1,7 +1,8 @@
 #include <fstream>
 #include <iostream>
-#include <string.h>
+#include <string>
 #include <vector>
+#include <algorithm>
 
 #include "Instructions.h"
 
@@ -46,6 +47,8 @@ uint16_t program0[8] = {
 	0x0008,
 	0x0000
 };
+
+std::vector<blue_register> breakpoints{};
 
 void press_ON()
 {
@@ -443,30 +446,44 @@ void dumpRAM()
 	}
 }
 
+size_t getCmdOption(std::string& cmd, const std::string& option)
+{
+	return cmd.find(option) != std::string::npos;
+}
+
 void runProgram(const uint16_t* program)
 {
-	std::cout << "Copying program to the RAM" << std::endl;
-	memset(RAM, 0x00, (RAM_LENGTH * sizeof(uint16_t)));
-	memcpy(RAM, program, (RAM_LENGTH * sizeof(uint16_t)));
+	std::cout << "Copying program to the RAM\n";
+	std::fill(&RAM[0], &RAM[RAM_LENGTH - 1], 0x00 );
+	memmove(RAM, program, (RAM_LENGTH * sizeof(uint16_t)));
 	press_ON();
 	for (;;) {
-		char inputChar = 0;
-
 		emulateCycle();
 		if (printRegistersEveryCycle)
 			dumpRegisters();
+		if (std::find(breakpoints.begin(), breakpoints.end(), PC) != breakpoints.end())
+			power = false;
 		while (power == false) {
-			std::cout << "..." << std::endl;
-			inputChar = getchar();
-			if (inputChar == 'c') {
+			std::string command;
+			std::getline(std::cin, command);
+			if ("c" == command) {
 				power = true;;
 			}
-			if (inputChar == 'r'){
+			else if ("r" == command){
 				dumpRAM();
 			}
-			else if (inputChar == 'q') {
-				std::cout << "Stopping..." << std::endl;
+			else if ("q" == command) {
+				std::cout << "Stopping...\n";
 				goto quit;
+			}
+			else if (getCmdOption(command, "b")) {
+				size_t indx = getCmdOption(command, "b");
+				if (command.at(indx) != *command.end())
+				{
+					uint16_t line = atoi(&command.at(indx));
+					std::cout << "Set breakpoint at line " << std::dec << line << "\n";
+					breakpoints.push_back(line);
+				}	
 			}
 		}
 	}
@@ -475,7 +492,7 @@ void runProgram(const uint16_t* program)
 
 int main(int argc, char* argv[])
 {
-	std::cout << "Running soft blue" << std::endl;
+	std::cout << "Running soft blue\n";
 	uint16_t program_data[RAM_LENGTH];
 	uint16_t* program = program0;
 
