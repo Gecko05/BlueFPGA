@@ -307,18 +307,16 @@ begin
 			elsif o_CP(2) = '1' then
 			-- Fetch Instruction
 				i_PCInc <= '0';
-				i_MBRClear <= '1';
-				if STATE = '1' then
-					i_ACCClear <= '1';
+				if STATE = '0' then
+					i_MBRClear <= '1';
 				end if;
 			-- CLOCK PULSE 4
 			elsif o_CP(3) = '1' then
 				if STATE = '0' then
 				-- Clear Instruction Register
 					i_IRTakeIn <= '1';
+					i_MBRClear <= '0';
 				end if;
-				i_MBRClear <= '0';
-				i_ACCClear <= '0';
 			-- CLOCK PULSE 5
 			elsif o_CP(4) = '1' then
 				i_IRTakeIn <= '0';
@@ -367,7 +365,13 @@ begin
 						i_MARTakeIn <= '1';
 					end if;
 				else
-					if o_CP(5) = '1' then
+					if o_CP(2) = '1' then
+						i_ACCClear <= '1';
+						i_MBRClear <= '1';
+					elsif o_CP(3) = '1' then
+						i_ACCClear <= '0';
+						i_MBRClear <= '0';
+					elsif o_CP(5) = '1' then
 						i_ACC <= o_MBRBus;
 						i_NUM <= o_ZBus;	
 						i_OP <= Instruction(2 DOWNTO 0);
@@ -413,14 +417,15 @@ begin
 						i_MARBus <= o_IRBus(11 DOWNTO 0);
 					end if;
 				else
-					if o_CP(3) then
+					if o_CP(3) = '1' then
 						i_MBRClear <= '1';
-					elsif o_CP(4) then
+					elsif o_CP(4) = '1' then
+						i_MBRClear <= '0';
 						i_MBRBus <= o_ACCBus;
 						i_MBRTakeIn <= '1';
-					elsif o_CP(5) then
+					elsif o_CP(5) = '1' then
 						i_MBRTakeIn <= '0';
-					elsif o_CP(7) then
+					elsif o_CP(7) = '1' then
 						STATE <= '0';
 						i_MARBus <= o_PCBus;
 						i_MARTakeIn <= '1';

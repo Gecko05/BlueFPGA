@@ -52,7 +52,7 @@ begin
 			elsif i_MBRTakeIn = '1' then -- Take in a value from the bus and write it out to the memory
 				MBRData <= i_MBRBus;
 				o_MBRWEA <= "1";
-				o_MBRWriteBus <= MBRData;
+				o_MBRWriteBus <= i_MBRBus;
 			else
 				o_MBRWEA <= "0";
 			end if;
