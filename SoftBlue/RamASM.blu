@@ -16,7 +16,8 @@ XOR 11
 LDA 10
 AND 9
 STA 22
+LDA 8
 LDA 22
-ADD 2
+ADD 10
 HLT
-// Result must be 6
+// Result must be 0xB

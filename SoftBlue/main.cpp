@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <string.h>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -7,6 +8,7 @@
 #include "Instructions.h"
 
 #define RAM_LENGTH 4096
+const int DUMP_COLS = 16;
 typedef uint16_t blue_register;
 
 bool printRegistersEveryCycle = true;
@@ -232,9 +234,7 @@ void do_STA(uint8_t tick)
 			MAR = (IR & 0x0FFF);
 		}
 	} else if (STATE == EXECUTE) {
-		if (tick == 1) {
-			A = 0;
-		} else if (tick == 3) {
+		if (tick == 3) {
 			MBR = 0;
 		} else if (tick == 4) {
 			RAM[MAR] = MBR = A;
@@ -430,18 +430,16 @@ void emulateCycle()
 
 void dumpRegisters()
 {
-	std::cout << " PC: " << PC << (STATE ? " E " : " F ") <<  "A: " << std::hex << A <<
-		" IR: " << IR << " Z: " << Z <<
-		" MAR: " << MAR << " MBR: " << MBR << std::endl;
+	printf("PC: %04x A: %04x IR: %04x Z: %04x MAR: %04x MBR: %04x\n", PC, A, IR, Z, MAR, MBR);
 }
 
 void dumpRAM()
 {
-	std::cout << "==== RAM ====" << std::endl;
-	for (int i = 0; i < RAM_LENGTH; i++) {
-		std::cout << std::hex << RAM[i] << " ";
-		if ((i % 16 == 0) && (i != 0)) {
-			std::cout << std::endl;
+	printf("==== RAM ====\n0000: ");
+	for (int i = 1; i < RAM_LENGTH + 1; i++) {
+		printf("%04x ", RAM[i-1]);
+		if ((i % 8 == 0) && (i != RAM_LENGTH)) {
+			printf("\n%04x: ", i - 1);
 		}
 	}
 }
@@ -454,15 +452,18 @@ size_t getCmdOption(std::string& cmd, const std::string& option)
 void runProgram(const uint16_t* program)
 {
 	std::cout << "Copying program to the RAM\n";
-	std::fill(&RAM[0], &RAM[RAM_LENGTH - 1], 0x00 );
+	memset(RAM, 0x00, RAM_LENGTH * sizeof(uint16_t));
 	memmove(RAM, program, (RAM_LENGTH * sizeof(uint16_t)));
 	press_ON();
 	for (;;) {
 		emulateCycle();
-		if (printRegistersEveryCycle)
+		if (printRegistersEveryCycle) {
 			dumpRegisters();
-		if (std::find(breakpoints.begin(), breakpoints.end(), PC) != breakpoints.end())
+		}
+		if (std::find(breakpoints.begin(), breakpoints.end(), PC) != breakpoints.end()) {
+			printf("Stopped at line %i\n", PC);
 			power = false;
+		}
 		while (power == false) {
 			std::string command;
 			std::getline(std::cin, command);
@@ -475,6 +476,11 @@ void runProgram(const uint16_t* program)
 			else if ("q" == command) {
 				std::cout << "Stopping...\n";
 				goto quit;
+			}
+			else if ("s" == command) {
+				// This is not ideal
+				breakpoints.push_back(PC + 1);
+				power = true;
 			}
 			else if (getCmdOption(command, "b")) {
 				size_t indx = getCmdOption(command, "b");
@@ -503,6 +509,7 @@ int main(int argc, char* argv[])
 			std::cout << "Failed to open the program file" << std::endl;
 			return 0;
 		}
+		memset(program_data, 0x00, RAM_LENGTH * sizeof(uint16_t));
 		program_file.read((char*)program_data, RAM_LENGTH);
 		program = program_data;
 		program_file.close();
