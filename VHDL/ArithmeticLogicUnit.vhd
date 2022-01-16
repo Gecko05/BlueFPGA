@@ -31,12 +31,12 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity ArithmeticLogicUnit is
 	PORT(
-		i_ACC : in STD_LOGIC_VECTOR(15 DOWNTO 0);
+		i_ALU : in STD_LOGIC_VECTOR(15 DOWNTO 0);
 		i_NUM : in STD_LOGIC_VECTOR(15 DOWNTO 0);
 		i_OP : in STD_LOGIC_VECTOR(2 DOWNTO 0);
 		i_CLK : in STD_LOGIC;
 		o_OF : out STD_LOGIC;
-		o_ACC : out STD_LOGIC_VECTOR(15 DOWNTO 0)
+		o_ALU : out STD_LOGIC_VECTOR(15 DOWNTO 0)
 	);
 end ArithmeticLogicUnit;
 
@@ -58,7 +58,7 @@ architecture rtl of ArithmeticLogicUnit is
 begin
 		-- Instantiate the Ripple Carry Adder
    Adder: RippleCarryAdder PORT MAP (
-          i_add1 => i_ACC,
+          i_add1 => i_ALU,
           i_add2 => i_NUM,
           o_res => ADD_RES
         );
@@ -69,18 +69,18 @@ begin
 				
 			elsif i_OP = "001" then -- ADD Instruction from CU
 				RES <= ADD_RES(15 DOWNTO 0);
-				OVERFLOW <= (i_ACC(15) AND i_NUM(15) AND (NOT(ADD_RES(15)))) OR ((NOT(i_ACC(15))) AND (NOT(i_NUM(15))) AND ADD_RES(15));
+				OVERFLOW <= (i_ALU(15) AND i_NUM(15) AND (NOT(ADD_RES(15)))) OR ((NOT(i_ALU(15))) AND (NOT(i_NUM(15))) AND ADD_RES(15));
 			elsif i_OP = "010" then
-				RES <= i_ACC xor i_NUM;
+				RES <= i_ALU xor i_NUM;
 			elsif i_OP = "011" then
-				RES <= i_ACC and i_NUM;
+				RES <= i_ALU and i_NUM;
 			elsif i_OP = "100" then
-				RES <= i_ACC or i_NUM;
+				RES <= i_ALU or i_NUM;
 			else
 			end if;
 		end if;
 	end process;
-	o_ACC <= RES;
+	o_ALU <= RES;
 	o_OF <= OVERFLOW;
 end rtl;
 

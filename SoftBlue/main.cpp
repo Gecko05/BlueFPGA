@@ -358,27 +358,26 @@ void do_NOP(uint8_t tick)
 }
 
 std::vector<void (*)(uint8_t tick)> instruction_callback{
-		do_HLT,
-		do_ADD,
-		do_XOR,
-		do_AND,
-		do_IOR,
-		do_NOT,
-		do_LDA,
-		do_STA,
-		do_SRJ,
-		do_JMA,
-		do_JMP,
-		do_INP,
-		do_OUT,
-		do_RAL,
-		do_CSA,
-		do_NOP,
+	do_HLT,
+	do_ADD,
+	do_XOR,
+	do_AND,
+	do_IOR,
+	do_NOT,
+	do_LDA,
+	do_STA,
+	do_SRJ,
+	do_JMA,
+	do_JMP,
+	do_INP,
+	do_OUT,
+	do_RAL,
+	do_CSA,
+	do_NOP,
 };
 
 void process_tick(uint8_t tick)
 {
-	
 	switch (tick) {
 	case 0x00:
 		break;

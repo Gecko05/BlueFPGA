@@ -61,11 +61,11 @@ def main(argv):
         elif opt in ("-i", "--ifile"):
             inputfile = arg
         elif opt in ("-o", "--ofile"):
-            if outputfile == '':
-                outputfile = arg
+            outputfile = arg
         elif opt == '-r':
             print('Generating ram.coe')
-            outputfile = 'ram.coe'
+            if outputfile == '':
+                outputfile = 'ram.coe'
             binary = False
     if inputfile == '' or outputfile == '':
         print("Missing i/o filenames")

@@ -41,24 +41,24 @@ ARCHITECTURE behavior OF ArithmeticLogicUnitTest IS
  
     COMPONENT ArithmeticLogicUnit
     PORT(
-         i_ACC : IN  std_logic_vector(15 downto 0);
+         i_ALU : IN  std_logic_vector(15 downto 0);
          i_NUM : IN  std_logic_vector(15 downto 0);
          i_OP : IN  std_logic_vector(2 downto 0);
          i_CLK : IN  std_logic;
 			o_OF : OUT std_logic;
-         o_ACC : OUT  std_logic_vector(15 downto 0)
+         o_ALU : OUT  std_logic_vector(15 downto 0)
         );
     END COMPONENT;
     
 
    --Inputs
-   signal i_ACC : std_logic_vector(15 downto 0) := (others => '0');
+   signal i_ALU : std_logic_vector(15 downto 0) := (others => '0');
    signal i_NUM : std_logic_vector(15 downto 0) := (others => '0');
    signal i_OP : std_logic_vector(2 downto 0) := (others => '0');
    signal i_CLK : std_logic := '0';
 
  	--Outputs
-   signal o_ACC : std_logic_vector(15 downto 0);
+   signal o_ALU : std_logic_vector(15 downto 0);
 	signal o_OF : std_logic;
 
    -- Clock period definitions
@@ -68,12 +68,12 @@ BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
    uut: ArithmeticLogicUnit PORT MAP (
-          i_ACC => i_ACC,
+          i_ALU => i_ALU,
           i_NUM => i_NUM,
           i_OP => i_OP,
           i_CLK => i_CLK,
 			 o_OF => o_OF,
-          o_ACC => o_ACC
+          o_ALU => o_ALU
         );
 
    -- Clock process definitions
@@ -93,21 +93,21 @@ BEGIN
       wait for 100 ns;	
 
       wait for i_CLK_period*5;
-		i_ACC <= "0000000000001010"; -- 8
+		i_ALU <= "0000000000001010"; -- 8
 		i_NUM <= "1111111111111110"; -- -2
 		--        000|000|000|000|
 		-- 		 10 - 2 = 8
 		i_OP <= "001";
 		
 		wait for i_CLK_period*5;
-		i_ACC <= "0000000000001101"; -- 13
+		i_ALU <= "0000000000001101"; -- 13
 		i_NUM <= "1111111111101100"; -- -20
 		--        000|000|000|000|
 		-- 		 13 - 20 = -7 = 1...001
 		i_OP <= "001";
 		
 		wait for i_CLK_period*5;
-		i_ACC <= "0111110100000000"; -- 32000
+		i_ALU <= "0111110100000000"; -- 32000
 		i_NUM <= "0010011110001011"; -- 10123
 		i_OP <= "001";
 		-- Should overflow

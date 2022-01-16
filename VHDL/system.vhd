@@ -171,20 +171,20 @@ architecture rtl of system is
 	-- ALU component
 	COMPONENT ArithmeticLogicUnit
 	PORT(
-		i_ACC : IN std_logic_vector(15 downto 0);
+		i_ALU : IN std_logic_vector(15 downto 0);
 		i_NUM : IN std_logic_vector(15 downto 0);
 		i_OP : IN std_logic_vector(2 downto 0);
 		i_CLK : IN std_logic;          
 		o_OF : OUT std_logic;
-		o_ACC : OUT std_logic_vector(15 downto 0)
+		o_ALU : OUT std_logic_vector(15 downto 0)
 		);
 	END COMPONENT;
 	
-	signal i_ACC : STD_LOGIC_VECTOR(15 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal i_ALU : STD_LOGIC_VECTOR(15 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal i_NUM : STD_LOGIC_VECTOR(15 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal i_OP : STD_LOGIC_VECTOR(2 DOWNTO 0) := "000";
 	signal o_OF : STD_LOGIC := '0';
-	signal o_ACC : STD_LOGIC_VECTOR(15 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal o_ALU : STD_LOGIC_VECTOR(15 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	
 	-- Control Unit signals
 	signal Instruction : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
@@ -263,12 +263,12 @@ begin
 	);
 	-- ALU
 	ALU: ArithmeticLogicUnit PORT MAP(
-		i_ACC => i_ACC,
+		i_ALU => i_ALU,
 		i_NUM => i_NUM,
 		i_OP => i_OP,
 		i_CLK => CPU_CLK,
 		o_OF => o_OF,
-		o_ACC => o_ACC
+		o_ALU => o_ALU
 	);
 	-----------------------------------------
 	  
@@ -361,6 +361,7 @@ begin
 						i_ZTakeIn <= '1';
 					elsif o_CP(7) = '1' then
 						STATE <= '1';
+						i_ZTakeIn <= '0';
 						i_MARBus <= o_IRBus(11 DOWNTO 0);
 						i_MARTakeIn <= '1';
 					end if;
@@ -372,12 +373,39 @@ begin
 						i_ACCClear <= '0';
 						i_MBRClear <= '0';
 					elsif o_CP(5) = '1' then
-						i_ACC <= o_MBRBus;
+						i_ALU <= o_MBRBus;
 						i_NUM <= o_ZBus;	
 						i_OP <= Instruction(2 DOWNTO 0);
 					elsif o_CP(6) = '1' then
-						i_ACCBus <= o_ACC;
+						i_ACCBus <= o_ALU;
 						i_ACCTakeIn <= '1';
+					elsif o_CP(7) = '1' then
+						STATE <= '0';
+						i_MARBus <= o_PCBus;
+						i_MARTakeIn <= '1';
+					end if;
+				end if;
+			elsif Instruction = "0101" then
+				if STATE = '0' then
+					if o_CP(5) = '1' then
+						i_ZClear <= '1';
+					elsif o_CP(6) = '1' then
+						i_ZClear <= '0';
+						i_ZTakeIn <= '1';
+					elsif o_CP(7) = '1' then
+						i_ZTakeIn <= '0';
+						STATE <= '1';
+					end if;
+				elsif STATE = '1' then
+					if o_CP(0) = '1' then
+						i_ACCClear <= '1';
+					elsif o_CP(1) = '1' then
+						i_ACCClear <= '0';
+						i_ACCBus <= NOT(o_ZBus);
+						i_ACCTakeIn <= '1';
+					elsif o_CP(2) = '1' then
+						i_ACCTakeIn <= '0';
+						i_ACCBus <= o_ALU;
 					elsif o_CP(7) = '1' then
 						STATE <= '0';
 						i_MARBus <= o_PCBus;
@@ -403,7 +431,7 @@ begin
 						i_ACCTakeIn <= '1';
 					elsif o_CP(5) = '1' then
 						i_ACCTakeIn <= '0';
-						i_ACCBus <= o_ACC;
+						i_ACCBus <= o_ALU;
 					elsif o_CP(7) = '1' then
 						STATE <= '0';
 						i_MARBus <= o_PCBus;
