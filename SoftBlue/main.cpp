@@ -3,6 +3,7 @@
 #include <string.h>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <algorithm>
 
 #include "Instructions.h"
@@ -11,12 +12,13 @@
 const int DUMP_COLS = 16;
 typedef uint16_t blue_register;
 
-bool printRegistersEveryCycle = true;
-
 typedef enum {
 	EXECUTE,
 	FETCH,
 } State;
+
+
+bool printRegistersEveryCycle = true;
 
 State STATE = FETCH;
 bool power = false;
@@ -33,8 +35,8 @@ blue_register MBR;
 blue_register IR;
 
 uint16_t RAM[RAM_LENGTH];
-uint8_t DSL;
-uint8_t DIL;
+blue_register DSL;
+blue_register DIL;
 uint8_t R;
 uint8_t clock_pulse = 0; // Each pulse, this will increment
 
@@ -50,6 +52,17 @@ uint16_t program0[8] = {
 	0x0000
 };
 
+std::unordered_map<std::string, blue_register*> BLUE_registers = {
+	{"PC", &PC},
+	{"A", &A},
+	{"Z", &Z},
+	{"SR", &SR},
+	{"MAR", &MAR},
+	{"MBR", &MBR},
+	{"IR", &IR},
+	{"DSL", &DSL},
+	{"DIL", &DIL}
+};
 std::vector<blue_register> breakpoints{};
 
 void press_ON()
@@ -287,7 +300,7 @@ void do_INP(uint8_t tick)
 	if (STATE == FETCH) {
 		if (tick == 5) {
 			A = 0;
-			DSL = (0x003F & IR);
+			DSL = (IR & 0x003F);
 		} else if (tick == 6) {
 			TRA = true;
 		} else if (tick == 7) {
@@ -296,7 +309,7 @@ void do_INP(uint8_t tick)
 	} else if (STATE == EXECUTE) {
 		if (tick == 4) {
 			R = true;
-			A = DIL;
+			A = (DIL & 0x00FF);
 		} else if (tick == 5) {
 			if (R == true)
 				TRA = false;
@@ -307,9 +320,7 @@ void do_INP(uint8_t tick)
 			}
 		}
 	}
-	std::cout << "Hello" << std::endl;
 	A = 0;
-
 }
 
 void do_OUT(uint8_t tick)
@@ -429,7 +440,7 @@ void emulateCycle()
 
 void dumpRegisters()
 {
-	printf("PC: %04x A: %04x IR: %04x Z: %04x MAR: %04x MBR: %04x\n", PC, A, IR, Z, MAR, MBR);
+	printf("PC: %04x A: %04x IR: %04x Z: %04x MAR: %04x MBR: %04x DSL: %02x DIL: %02x\n", PC, A, IR, Z, MAR, MBR, (DSL & 0x00FF), (DIL & 0x00FF));
 }
 
 void dumpRAM()
@@ -469,7 +480,10 @@ void runProgram(const uint16_t* program)
 			if ("c" == command) {
 				power = true;;
 			}
-			else if ("r" == command){
+			else if ("r" == command) {
+				dumpRegisters();
+			}
+			else if ("d" == command) {
 				dumpRAM();
 			}
 			else if ("q" == command) {
@@ -482,12 +496,29 @@ void runProgram(const uint16_t* program)
 				power = true;
 			}
 			else if (getCmdOption(command, "b")) {
-				size_t indx = getCmdOption(command, "b");
-				if (command.at(indx) != *command.end())
+				size_t pos = getCmdOption(command, "b");
+				if (command.at(pos) != *command.end())
 				{
-					uint16_t line = atoi(&command.at(indx));
+					uint16_t line = atoi(&command.at(pos));
 					std::cout << "Set breakpoint at line " << std::dec << line << "\n";
 					breakpoints.push_back(line);
+				}	
+			}
+			else if (getCmdOption(command, "x")) {
+				size_t pos = getCmdOption(command, "x");
+				if (command.at(pos) != *command.end())
+				{
+					std::string register_and_val = command.substr(pos + 1);
+					blue_register val = stoi(register_and_val.substr(register_and_val.find(" ")));
+					std::string register_to_mod = register_and_val.substr(0, register_and_val.find(" "));
+					auto it = BLUE_registers.find(register_to_mod);
+					if (it != BLUE_registers.end()) {
+						blue_register* reg = it->second;
+						*reg = val;
+					}
+					else {
+						std::cout << "Invalid register name\n";
+					}
 				}	
 			}
 		}
