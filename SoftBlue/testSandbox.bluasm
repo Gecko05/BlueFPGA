@@ -1,0 +1,5 @@
+LDA 4
+OUT 2
+INP 0
+HLT 0
+0700

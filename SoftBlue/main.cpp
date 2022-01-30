@@ -17,12 +17,14 @@ typedef enum {
 	FETCH,
 } State;
 
-
-bool printRegistersEveryCycle = true;
+bool debugMode = true;
+bool printRegistersEveryCycle = debugMode;
+bool manualInputMode = true;
 
 State STATE = FETCH;
 bool power = false;
 bool TRA = false;
+bool R = false; // READY for device communication
 
 blue_register PC = 0x00;
 blue_register A;
@@ -37,7 +39,7 @@ blue_register IR;
 uint16_t RAM[RAM_LENGTH];
 blue_register DSL;
 blue_register DIL;
-uint8_t R;
+blue_register DOL;
 uint8_t clock_pulse = 0; // Each pulse, this will increment
 
 // Sample program
@@ -308,8 +310,9 @@ void do_INP(uint8_t tick)
 		}
 	} else if (STATE == EXECUTE) {
 		if (tick == 4) {
-			R = true;
-			A = (DIL & 0x00FF);
+			if (R == true) {
+				A = ((DIL << 8) & 0xFF00);
+			}
 		} else if (tick == 5) {
 			if (R == true)
 				TRA = false;
@@ -320,12 +323,35 @@ void do_INP(uint8_t tick)
 			}
 		}
 	}
-	A = 0;
 }
 
 void do_OUT(uint8_t tick)
 {
-	std::cout << "Hello" << std::endl;
+	if (STATE == FETCH) {
+		if (tick == 5) {
+			DOL = ((A >> 8) & 0x00FF);
+			DSL = (IR & 0x003F);
+		}
+		else if (tick == 6) {
+			TRA = true;
+		}
+		else if (tick == 7) {
+			STATE = EXECUTE;
+		}
+	}
+	else {
+		if (tick == 4) {
+			if (R == true) {
+				TRA = false;
+			}
+		}
+		else if (tick == 7) {
+			if (TRA == false) {
+				STATE = FETCH;
+				MAR = PC;
+			}
+		}
+	}
 }
 
 void do_RAL(uint8_t tick)
@@ -387,6 +413,10 @@ std::vector<void (*)(uint8_t tick)> instruction_callback{
 	do_NOP,
 };
 
+uint8_t get_instruction() {
+	return ((IR & 0xF000) >> 12);
+}
+
 void process_tick(uint8_t tick)
 {
 	switch (tick) {
@@ -419,13 +449,51 @@ void process_tick(uint8_t tick)
 	default:
 		break;
 	}
-	uint8_t INS = ((IR & 0xF000) >> 12);
+	uint8_t INS = get_instruction();
 	(*instruction_callback[INS])(tick);
 }
 
 void tick_clock()
 {
 	clock_pulse++;
+}
+
+void handleIO()
+{
+	if (INP == get_instruction()) {
+		if (TRA == true) {
+			while (debugMode && R == false) {
+				std::cout << "Input byte: \n";
+				std::string input;
+				std::getline(std::cin, input);
+				try {
+					uint8_t inputByte = (std::stoi(input)) & 0xFF;
+					DIL = (0xFF & inputByte);
+					R = true;
+				}
+				catch (...) {
+					std::cout << "Invalid input. Try again\n";
+				}
+			}
+		}
+		else {
+			R = false;
+		}
+	}
+	else if (OUT == get_instruction()) {
+		if (TRA == true) {
+			if (debugMode && R == false) {
+				printf("%02x .\n", DOL);
+				R = true;
+			}
+		}
+		else {
+			R = false;
+		}
+	}
+	else {
+		R = false;
+	}
 }
 
 void emulateCycle()
@@ -440,7 +508,7 @@ void emulateCycle()
 
 void dumpRegisters()
 {
-	printf("PC: %04x A: %04x IR: %04x Z: %04x MAR: %04x MBR: %04x DSL: %02x DIL: %02x\n", PC, A, IR, Z, MAR, MBR, (DSL & 0x00FF), (DIL & 0x00FF));
+	printf("PC: %04x A: %04x IR: %04x Z: %04x MAR: %04x MBR: %04x DSL: %02x DIL: %02x DOL: %02x\n", PC, A, IR, Z, MAR, MBR, (DSL & 0x00FF), (DIL & 0x00FF), (DOL & 0x00FF));
 }
 
 void dumpRAM()
@@ -467,61 +535,62 @@ void runProgram(const uint16_t* program)
 	press_ON();
 	for (;;) {
 		emulateCycle();
-		if (printRegistersEveryCycle) {
+		if (debugMode) {
 			dumpRegisters();
+			if (std::find(breakpoints.begin(), breakpoints.end(), PC) != breakpoints.end()) {
+				printf("Stopped at line %i\n", PC);
+				power = false;
+			}
+			while (power == false) {
+				std::string command;
+				std::getline(std::cin, command);
+				if ("c" == command) {
+					power = true;;
+				}
+				else if ("r" == command) {
+					dumpRegisters();
+				}
+				else if ("d" == command) {
+					dumpRAM();
+				}
+				else if ("q" == command) {
+					std::cout << "Stopping...\n";
+					goto quit;
+				}
+				else if ("s" == command) {
+					// This is not ideal
+					breakpoints.push_back(PC + 1);
+					power = true;
+				}
+				else if (getCmdOption(command, "b")) {
+					size_t pos = getCmdOption(command, "b");
+					if (command.at(pos) != *command.end())
+					{
+						uint16_t line = atoi(&command.at(pos));
+						std::cout << "Set breakpoint at line " << std::dec << line << "\n";
+						breakpoints.push_back(line);
+					}	
+				}
+				else if (getCmdOption(command, "x")) {
+					size_t pos = getCmdOption(command, "x");
+					if (command.at(pos) != *command.end())
+					{
+						std::string register_and_val = command.substr(pos + 1);
+						blue_register val = stoi(register_and_val.substr(register_and_val.find(" ")));
+						std::string register_to_mod = register_and_val.substr(0, register_and_val.find(" "));
+						auto it = BLUE_registers.find(register_to_mod);
+						if (it != BLUE_registers.end()) {
+							blue_register* reg = it->second;
+							*reg = val;
+						}
+						else {
+							std::cout << "Invalid register name\n";
+						}
+					}	
+				}
+			}
 		}
-		if (std::find(breakpoints.begin(), breakpoints.end(), PC) != breakpoints.end()) {
-			printf("Stopped at line %i\n", PC);
-			power = false;
-		}
-		while (power == false) {
-			std::string command;
-			std::getline(std::cin, command);
-			if ("c" == command) {
-				power = true;;
-			}
-			else if ("r" == command) {
-				dumpRegisters();
-			}
-			else if ("d" == command) {
-				dumpRAM();
-			}
-			else if ("q" == command) {
-				std::cout << "Stopping...\n";
-				goto quit;
-			}
-			else if ("s" == command) {
-				// This is not ideal
-				breakpoints.push_back(PC + 1);
-				power = true;
-			}
-			else if (getCmdOption(command, "b")) {
-				size_t pos = getCmdOption(command, "b");
-				if (command.at(pos) != *command.end())
-				{
-					uint16_t line = atoi(&command.at(pos));
-					std::cout << "Set breakpoint at line " << std::dec << line << "\n";
-					breakpoints.push_back(line);
-				}	
-			}
-			else if (getCmdOption(command, "x")) {
-				size_t pos = getCmdOption(command, "x");
-				if (command.at(pos) != *command.end())
-				{
-					std::string register_and_val = command.substr(pos + 1);
-					blue_register val = stoi(register_and_val.substr(register_and_val.find(" ")));
-					std::string register_to_mod = register_and_val.substr(0, register_and_val.find(" "));
-					auto it = BLUE_registers.find(register_to_mod);
-					if (it != BLUE_registers.end()) {
-						blue_register* reg = it->second;
-						*reg = val;
-					}
-					else {
-						std::cout << "Invalid register name\n";
-					}
-				}	
-			}
-		}
+		handleIO();
 	}
 	quit: std::cout << "Finished execution" << std::endl;
 }
@@ -532,7 +601,8 @@ int main(int argc, char* argv[])
 	uint16_t program_data[RAM_LENGTH];
 	uint16_t* program = program0;
 
-	if ((argc == 2) && (argv[1])){
+	std::cout << argv[1];
+	if ((argc >= 2) && (argv[1])){
 		std::ifstream program_file;
 		program_file.open(argv[1]);
 		if (!program_file){
@@ -543,6 +613,9 @@ int main(int argc, char* argv[])
 		program_file.read((char*)program_data, RAM_LENGTH);
 		program = program_data;
 		program_file.close();
+	}
+	else {
+		std::cout << "Running default program\n";
 	}
 
 	runProgram(program);

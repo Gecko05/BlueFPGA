@@ -31,7 +31,7 @@
                 "-i",
                 "${file}",
                 "-o",
-                "${fileDirname}/blueprogram"],
+                "${fileDirname}/${fileBasenameNoExtension}.blu"],
             "type": "shell"
         }
     ],

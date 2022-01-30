@@ -9,7 +9,7 @@
             "type":"cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/SoftBlue/blue",
-            "args": ["blueprogram"],
+            "args": ["${fileBasenameNoExtension}.blu"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
@@ -23,7 +23,7 @@
                 }
             ],
             "preLaunchTask": "assembleBlue",
-            "miDebuggerPath": "/usr/bin/gdb"
+            "miDebuggerPath": "gdb"
         },
         {
             "name": "g++ - Build and debug active file",
