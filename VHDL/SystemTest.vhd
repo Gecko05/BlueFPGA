@@ -42,7 +42,7 @@ ARCHITECTURE behavior OF SystemTest IS
     COMPONENT system
     PORT(
          CLK_100MHz : IN  std_logic;
-         i_PB : IN  std_logic_vector(0 to 1);
+         Switch : IN  std_logic_vector(0 to 1);
          o_LED : OUT  std_logic_vector(0 to 7)
         );
     END COMPONENT;
@@ -63,7 +63,7 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
    uut: system PORT MAP (
           CLK_100MHz => CLK_100MHz,
-          i_PB => i_PB,
+          Switch => i_PB,
           o_LED => o_LED
         );
 

@@ -32,7 +32,9 @@ use IEEE.NUMERIC_STD.ALL;
 entity system is
 	Port(
 		CLK_100MHz : in STD_LOGIC;
-		i_PB : in STD_LOGIC_VECTOR(0 TO 1);
+		Switch : in STD_LOGIC_VECTOR(0 TO 1);
+		SevenSegment : OUT std_logic_vector(0 to 7);
+		SevenSegmentEnable : OUT std_logic_vector(1 downto 0);
 		o_LED : out STD_LOGIC_VECTOR(0 TO 7)
 	);
 end system;
@@ -50,6 +52,29 @@ architecture rtl of system is
 	signal r_RUN : STD_LOGIC := '0';
 	signal o_CP : STD_LOGIC_VECTOR(0 TO 7);
 	signal CPU_CLK : STD_LOGIC;
+	
+-- Seven Segment Display
+	COMPONENT segDisp
+	PORT(
+		i_CLK_100MHz : IN std_logic;
+		i_DATA : IN std_logic_vector(7 downto 0);          
+		o_SevenSegment : OUT std_logic_vector(0 to 7);
+		o_SevenSegmentEnable : OUT std_logic_vector(1 downto 0)
+		);
+	END COMPONENT;
+	
+	signal dispData : std_logic_vector(7 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 8));
+	
+-- Debounce Switch
+	COMPONENT Debounce_Switch
+	PORT(
+		i_Clk : IN std_logic;
+		i_Switch : IN std_logic;          
+		o_Switch : OUT std_logic
+		);
+	END COMPONENT;
+	
+	signal i_Switch : std_logic_vector(1 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 2));
 	
 -- Instruction Register component
 	COMPONENT InstructionRegister
@@ -146,9 +171,9 @@ architecture rtl of system is
 		);
 	END COMPONENT;
 	
-	signal i_ACCClear : STD_LOGIC;
+	signal i_ACCClear : STD_LOGIC := '0';
 	signal i_ACCBus : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
-	signal i_ACCTakeIn : STD_LOGIC;
+	signal i_ACCTakeIn : STD_LOGIC := '0';
 	signal o_ACCBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
 	
 	-- Z Register component
@@ -192,7 +217,7 @@ architecture rtl of system is
 	-- Buttons
 	signal w_START : STD_LOGIC;
 	signal w_STOP : STD_LOGIC;
-	signal r_NEW_CYCLE : STD_LOGIC; -- Used as a lock to avoid going into CP(7) more than once
+	signal r_NEW_CYCLE : STD_LOGIC := '0'; -- Used as a lock to avoid going into CP(7) more than once
 begin
 	-- Clock and power
 	CLK_Sys: clockSystem PORT MAP(
@@ -202,6 +227,25 @@ begin
 	);
 	o_LED <= o_CP;
 
+	-- Seven Segment Display
+	Inst_segDisp: segDisp PORT MAP(
+		i_CLK_100MHz => CLK_100MHz,
+		o_SevenSegment => SevenSegment,
+		o_SevenSegmentEnable => SevenSegmentEnable,
+		i_DATA => dispData
+	);
+	-- Debounce switches
+	Debounce_Switch0: Debounce_Switch PORT MAP(
+		i_Clk => CLK_100MHz,
+		i_Switch => Switch(0),
+		o_Switch => i_Switch(0)
+	);
+	
+	Debounce_Switch1: Debounce_Switch PORT MAP(
+		i_Clk => CLK_100MHz,
+		i_Switch => Switch(1),
+		o_Switch => i_Switch(1)
+	);
 	-- Instruction register
 	IR: InstructionRegister PORT MAP(
 		i_Clock => CPU_CLK,
@@ -284,42 +328,54 @@ begin
 	--i_PCBus <= o_IRBus(0 TO 11);
 	o_LED <= o_CP;
 	-- Start and stop buttonns
-	w_START <= not(i_PB(0));
-	w_STOP <= not(i_PB(1));
-	
-	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_STOP, r_NEW_CYCLE) begin
+	w_START <= not(i_Switch(0));
+	w_STOP <= not(i_Switch(1));
+	dispData <= o_ACCBus(7 downto 0);
+	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_STOP, r_NEW_CYCLE, r_RUN, o_ACCBus,
+									STATE, o_PCBus, o_MBRBus, o_ZBus, o_ALU) begin
 		if r_RUN = '1' then
 			-- Control Unit
 			-- Shared Clock routines for all instructions
 			-- CLOCK PULSE 1
 			if o_CP(0) = '1' then
 				i_MARTakeIn <= '0';
-				i_PCTakeIn <= '0';
-				i_PCClear <= '0';
 				r_NEW_CYCLE <= '1';
+				i_PCInc <= '0';
+				i_MBRClear <= '0';
+				--dispData <= o_ACCBus(7 downto 0);
 			-- CLOCK PULSE 2
 			elsif o_CP(1) = '1' then
 				if STATE = '0' then
 				-- Increment Program Counter
 					i_PCInc <= '1';
+				else
+					i_PCInc <= '0';
 				end if;
+				i_MBRClear <= '0';
+				i_PCInc <= '0';
 			-- CLOCK PULSE 3
 			elsif o_CP(2) = '1' then
 			-- Fetch Instruction
 				i_PCInc <= '0';
 				if STATE = '0' then
 					i_MBRClear <= '1';
+				else
+					i_MBRClear <= '0';
 				end if;
+				i_PCInc <= '0';
 			-- CLOCK PULSE 4
 			elsif o_CP(3) = '1' then
 				if STATE = '0' then
 				-- Clear Instruction Register
 					i_IRTakeIn <= '1';
-					i_MBRClear <= '0';
 				end if;
+				i_MBRClear <= '0';
+				i_PCInc <= '0';
 			-- CLOCK PULSE 5
 			elsif o_CP(4) = '1' then
 				i_IRTakeIn <= '0';
+				i_PCInc <= '0';
+				i_MBRClear <= '0';
 			-- CLOCK PULSE 8
 			elsif o_CP(7) = '1' and r_NEW_CYCLE = '1' then
 				if STATE = '0' then
@@ -331,7 +387,12 @@ begin
 				i_ACCTakeIn <= '0';
 				i_ZTakeIn <= '0';
 				r_NEW_CYCLE <= '0';
+				i_PCInc <= '0';
+				i_MBRClear <= '0';
 			else
+				r_NEW_CYCLE <= '0';
+				i_PCInc <= '0';
+				i_MBRClear <= '0';
 			end if;
 			
 			-- This code is a mess, need to refactor with functions or something
@@ -376,13 +437,18 @@ begin
 						i_ALU <= o_MBRBus;
 						i_NUM <= o_ZBus;	
 						i_OP <= Instruction(2 DOWNTO 0);
+						i_MBRClear <= '0';
 					elsif o_CP(6) = '1' then
 						i_ACCBus <= o_ALU;
 						i_ACCTakeIn <= '1';
+						i_MBRClear <= '0';
 					elsif o_CP(7) = '1' then
 						STATE <= '0';
 						i_MARBus <= o_PCBus;
 						i_MARTakeIn <= '1';
+						i_MBRClear <= '0';
+					else
+						i_MBRClear <= '0';
 					end if;
 				end if;
 			elsif Instruction = "0101" then
@@ -421,6 +487,7 @@ begin
 				else
 					if o_CP(1) = '1' then
 						i_ACCClear <= '1';
+						i_MBRClear <= '0';
 					elsif o_CP(2) = '1' then
 						i_ACCClear <= '0';
 						i_MBRClear <= '1';
@@ -429,13 +496,18 @@ begin
 						i_ACCBus <= o_MBRBus;
 					elsif o_CP(4) = '1' then
 						i_ACCTakeIn <= '1';
+						i_MBRClear <= '0';
 					elsif o_CP(5) = '1' then
 						i_ACCTakeIn <= '0';
+						i_MBRClear <= '0';
 						i_ACCBus <= o_ALU;
 					elsif o_CP(7) = '1' then
 						STATE <= '0';
 						i_MARBus <= o_PCBus;
 						i_MARTakeIn <= '1';
+						i_MBRClear <= '0';
+					else
+						i_MBRClear <= '0';
 					end if;
 				end if;
 			elsif Instruction = "0111" then
@@ -453,10 +525,14 @@ begin
 						i_MBRTakeIn <= '1';
 					elsif o_CP(5) = '1' then
 						i_MBRTakeIn <= '0';
+						i_MBRClear <= '0';
 					elsif o_CP(7) = '1' then
 						STATE <= '0';
 						i_MARBus <= o_PCBus;
 						i_MARTakeIn <= '1';
+						i_MBRClear <= '0';
+					else
+						i_MBRClear <= '0';
 					end if;
 				end if;
 			end if;
@@ -466,10 +542,9 @@ begin
 			end if;
 			
 		-- START/RESUME
-		elsif r_RUN = '0' then
+		else
 			if w_START = '1' and o_CP(7) = '1' then
 				r_RUN <= '1';
-				--i_PCClear <= '1'; --Enable this to start PC from zero
 			end if;
 		end if;
 	end process;
