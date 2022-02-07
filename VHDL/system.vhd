@@ -215,8 +215,8 @@ architecture rtl of system is
 	signal Instruction : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
 	signal STATE : STD_LOGIC := '0'; -- 0 is Fetch, 1 is Execute
 	-- Buttons
-	signal w_START : STD_LOGIC;
-	signal w_STOP : STD_LOGIC;
+	signal w_STOP : STD_LOGIC := '0';
+	signal w_START : STD_LOGIC := '1';
 	signal r_NEW_CYCLE : STD_LOGIC := '0'; -- Used as a lock to avoid going into CP(7) more than once
 begin
 	-- Clock and power
@@ -331,220 +331,191 @@ begin
 	w_START <= not(i_Switch(0));
 	w_STOP <= not(i_Switch(1));
 	dispData <= o_ACCBus(7 downto 0);
-	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_STOP, r_NEW_CYCLE, r_RUN, o_ACCBus,
-									STATE, o_PCBus, o_MBRBus, o_ZBus, o_ALU) begin
-		if r_RUN = '1' then
-			-- Control Unit
-			-- Shared Clock routines for all instructions
-			-- CLOCK PULSE 1
-			if o_CP(0) = '1' then
-				i_MARTakeIn <= '0';
-				r_NEW_CYCLE <= '1';
-				i_PCInc <= '0';
-				i_MBRClear <= '0';
-				--dispData <= o_ACCBus(7 downto 0);
-			-- CLOCK PULSE 2
-			elsif o_CP(1) = '1' then
-				if STATE = '0' then
-				-- Increment Program Counter
-					i_PCInc <= '1';
-				else
-					i_PCInc <= '0';
-				end if;
-				i_MBRClear <= '0';
-				i_PCInc <= '0';
-			-- CLOCK PULSE 3
-			elsif o_CP(2) = '1' then
-			-- Fetch Instruction
-				i_PCInc <= '0';
-				if STATE = '0' then
-					i_MBRClear <= '1';
-				else
-					i_MBRClear <= '0';
-				end if;
-				i_PCInc <= '0';
-			-- CLOCK PULSE 4
-			elsif o_CP(3) = '1' then
-				if STATE = '0' then
-				-- Clear Instruction Register
-					i_IRTakeIn <= '1';
-				end if;
-				i_MBRClear <= '0';
-				i_PCInc <= '0';
-			-- CLOCK PULSE 5
-			elsif o_CP(4) = '1' then
-				i_IRTakeIn <= '0';
-				i_PCInc <= '0';
-				i_MBRClear <= '0';
-			-- CLOCK PULSE 8
-			elsif o_CP(7) = '1' and r_NEW_CYCLE = '1' then
-				if STATE = '0' then
-					if unsigned(Instruction) >= 5 or unsigned(Instruction) = 0 then
-						i_MARBus <= o_PCBus;
-						i_MARTakeIn <= '1';
-					end if;
-				end if;
-				i_ACCTakeIn <= '0';
-				i_ZTakeIn <= '0';
-				r_NEW_CYCLE <= '0';
-				i_PCInc <= '0';
-				i_MBRClear <= '0';
-			else
-				r_NEW_CYCLE <= '0';
-				i_PCInc <= '0';
-				i_MBRClear <= '0';
-			end if;
-			
-			-- This code is a mess, need to refactor with functions or something
-			-- Instruction tree
-			-- HALT
-			if Instruction = "0000" and o_CP(5) = '1' then
-				r_RUN <= '0';
-			-- JMP
-			elsif Instruction = "1010" then 
-				if o_CP(5) = '1' then
-					i_PCClear <= '1';
-				elsif o_CP(6) = '1' then
-					i_PCClear <= '0';
-					i_PCBus <= o_IRBus(11 DOWNTO 0);
-					i_PCTakeIn <= '1';
-				else
+	controlLoop : process (CLK_100MHz, o_CP, CPU_CLK, o_IRBus, Instruction, r_NEW_CYCLE, r_RUN, o_ACCBus,
+									STATE, o_PCBus, o_MBRBus, o_ZBus, o_ALU, i_Switch) begin
+		if rising_edge(CLK_100MHz) then
+			if r_RUN = '1' then
+				-- Control Unit
+				-- Shared Clock routines for all instructions
+				-- CLOCK PULSE 1
+				if o_CP(0) = '1' then
+					i_MARTakeIn <= '0';
 					i_PCTakeIn <= '0';
 					i_PCClear <= '0';
+					r_NEW_CYCLE <= '1';
+				-- CLOCK PULSE 2
+				elsif o_CP(1) = '1' then
+					if STATE = '0' then
+					-- Increment Program Counter
+						i_PCInc <= '1';
+					end if;
+				-- CLOCK PULSE 3
+				elsif o_CP(2) = '1' then
+				-- Fetch Instruction
+					i_PCInc <= '0';
+					if STATE = '0' then
+						i_MBRClear <= '1';
+					end if;
+				-- CLOCK PULSE 4
+				elsif o_CP(3) = '1' then
+					if STATE = '0' then
+					-- Clear Instruction Register
+						i_IRTakeIn <= '1';
+						i_MBRClear <= '0';
+					end if;
+				-- CLOCK PULSE 5
+				elsif o_CP(4) = '1' then
+					i_IRTakeIn <= '0';
+				-- CLOCK PULSE 8
+				elsif o_CP(7) = '1' and r_NEW_CYCLE = '1' then
+					if STATE = '0' then
+						if unsigned(Instruction) >= 5 or unsigned(Instruction) = 0 then
+							i_MARBus <= o_PCBus;
+							i_MARTakeIn <= '1';
+						end if;
+					end if;
+					i_ACCTakeIn <= '0';
+					i_ZTakeIn <= '0';
+					r_NEW_CYCLE <= '0';
+				else
 				end if;
-			-- ADD, AND, XOR, IOR
-			elsif unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
-				if STATE = '0' then
+				
+				-- This code is a mess, need to refactor with functions or something
+				-- Instruction tree
+				-- HALT
+				if Instruction = "0000" and o_CP(5) = '1' then
+					r_RUN <= '0';
+				-- JMP
+				elsif Instruction = "1010" then 
 					if o_CP(5) = '1' then
-						i_ZClear <= '1';
+						i_PCClear <= '1';
 					elsif o_CP(6) = '1' then
-						i_ZClear <= '0';
-						i_ZTakeIn <= '1';
-					elsif o_CP(7) = '1' then
-						STATE <= '1';
-						i_ZTakeIn <= '0';
-						i_MARBus <= o_IRBus(11 DOWNTO 0);
-						i_MARTakeIn <= '1';
-					end if;
-				else
-					if o_CP(2) = '1' then
-						i_ACCClear <= '1';
-						i_MBRClear <= '1';
-					elsif o_CP(3) = '1' then
-						i_ACCClear <= '0';
-						i_MBRClear <= '0';
-					elsif o_CP(5) = '1' then
-						i_ALU <= o_MBRBus;
-						i_NUM <= o_ZBus;	
-						i_OP <= Instruction(2 DOWNTO 0);
-						i_MBRClear <= '0';
-					elsif o_CP(6) = '1' then
-						i_ACCBus <= o_ALU;
-						i_ACCTakeIn <= '1';
-						i_MBRClear <= '0';
-					elsif o_CP(7) = '1' then
-						STATE <= '0';
-						i_MARBus <= o_PCBus;
-						i_MARTakeIn <= '1';
-						i_MBRClear <= '0';
+						i_PCClear <= '0';
+						i_PCBus <= o_IRBus(11 DOWNTO 0);
+						i_PCTakeIn <= '1';
 					else
-						i_MBRClear <= '0';
+						i_PCTakeIn <= '0';
+						i_PCClear <= '0';
 					end if;
-				end if;
-			elsif Instruction = "0101" then
-				if STATE = '0' then
-					if o_CP(5) = '1' then
-						i_ZClear <= '1';
-					elsif o_CP(6) = '1' then
-						i_ZClear <= '0';
-						i_ZTakeIn <= '1';
-					elsif o_CP(7) = '1' then
-						i_ZTakeIn <= '0';
-						STATE <= '1';
-					end if;
-				elsif STATE = '1' then
-					if o_CP(0) = '1' then
-						i_ACCClear <= '1';
-					elsif o_CP(1) = '1' then
-						i_ACCClear <= '0';
-						i_ACCBus <= NOT(o_ZBus);
-						i_ACCTakeIn <= '1';
-					elsif o_CP(2) = '1' then
-						i_ACCTakeIn <= '0';
-						i_ACCBus <= o_ALU;
-					elsif o_CP(7) = '1' then
-						STATE <= '0';
-						i_MARBus <= o_PCBus;
-						i_MARTakeIn <= '1';
-					end if;
-				end if;
-			elsif Instruction = "0110" then
-				if STATE = '0' then
-					if o_CP(7) = '1' then
-						STATE <= '1';
-						i_MARBus <= o_IRBus(11 DOWNTO 0);
-					end if;
-				else
-					if o_CP(1) = '1' then
-						i_ACCClear <= '1';
-						i_MBRClear <= '0';
-					elsif o_CP(2) = '1' then
-						i_ACCClear <= '0';
-						i_MBRClear <= '1';
-					elsif o_CP(3) = '1' then
-						i_MBRClear <= '0';
-						i_ACCBus <= o_MBRBus;
-					elsif o_CP(4) = '1' then
-						i_ACCTakeIn <= '1';
-						i_MBRClear <= '0';
-					elsif o_CP(5) = '1' then
-						i_ACCTakeIn <= '0';
-						i_MBRClear <= '0';
-						i_ACCBus <= o_ALU;
-					elsif o_CP(7) = '1' then
-						STATE <= '0';
-						i_MARBus <= o_PCBus;
-						i_MARTakeIn <= '1';
-						i_MBRClear <= '0';
+				-- ADD, AND, XOR, IOR
+				elsif unsigned(Instruction) < 5 and unsigned(Instruction) > 0 then
+					if STATE = '0' then
+						if o_CP(5) = '1' then
+							i_ZClear <= '1';
+						elsif o_CP(6) = '1' then
+							i_ZClear <= '0';
+							i_ZTakeIn <= '1';
+						elsif o_CP(7) = '1' then
+							STATE <= '1';
+							i_ZTakeIn <= '0';
+							i_MARBus <= o_IRBus(11 DOWNTO 0);
+							i_MARTakeIn <= '1';
+						end if;
 					else
-						i_MBRClear <= '0';
+						if o_CP(2) = '1' then
+							i_ACCClear <= '1';
+							i_MBRClear <= '1';
+						elsif o_CP(3) = '1' then
+							i_ACCClear <= '0';
+							i_MBRClear <= '0';
+						elsif o_CP(5) = '1' then
+							i_ALU <= o_MBRBus;
+							i_NUM <= o_ZBus;	
+							i_OP <= Instruction(2 DOWNTO 0);
+						elsif o_CP(6) = '1' then
+							i_ACCBus <= o_ALU;
+							i_ACCTakeIn <= '1';
+						elsif o_CP(7) = '1' then
+							STATE <= '0';
+							i_MARBus <= o_PCBus;
+							i_MARTakeIn <= '1';
+						end if;
 					end if;
-				end if;
-			elsif Instruction = "0111" then
-				if STATE = '0' then
-					if o_CP(7) = '1' then
-						STATE <= '1';
-						i_MARBus <= o_IRBus(11 DOWNTO 0);
+				elsif Instruction = "0101" then
+					if STATE = '0' then
+						if o_CP(5) = '1' then
+							i_ZClear <= '1';
+						elsif o_CP(6) = '1' then
+							i_ZClear <= '0';
+							i_ZTakeIn <= '1';
+						elsif o_CP(7) = '1' then
+							i_ZTakeIn <= '0';
+							STATE <= '1';
+						end if;
+					elsif STATE = '1' then
+						if o_CP(0) = '1' then
+							i_ACCClear <= '1';
+						elsif o_CP(1) = '1' then
+							i_ACCClear <= '0';
+							i_ACCBus <= NOT(o_ZBus);
+							i_ACCTakeIn <= '1';
+						elsif o_CP(2) = '1' then
+							i_ACCTakeIn <= '0';
+							i_ACCBus <= o_ALU;
+						elsif o_CP(7) = '1' then
+							STATE <= '0';
+							i_MARBus <= o_PCBus;
+							i_MARTakeIn <= '1';
+						end if;
 					end if;
-				else
-					if o_CP(3) = '1' then
-						i_MBRClear <= '1';
-					elsif o_CP(4) = '1' then
-						i_MBRClear <= '0';
-						i_MBRBus <= o_ACCBus;
-						i_MBRTakeIn <= '1';
-					elsif o_CP(5) = '1' then
-						i_MBRTakeIn <= '0';
-						i_MBRClear <= '0';
-					elsif o_CP(7) = '1' then
-						STATE <= '0';
-						i_MARBus <= o_PCBus;
-						i_MARTakeIn <= '1';
-						i_MBRClear <= '0';
+				elsif Instruction = "0110" then
+					if STATE = '0' then
+						if o_CP(7) = '1' then
+							STATE <= '1';
+							i_MARBus <= o_IRBus(11 DOWNTO 0);
+						end if;
 					else
-						i_MBRClear <= '0';
+						if o_CP(1) = '1' then
+							i_ACCClear <= '1';
+						elsif o_CP(2) = '1' then
+							i_ACCClear <= '0';
+							i_MBRClear <= '1';
+						elsif o_CP(3) = '1' then
+							i_MBRClear <= '0';
+							i_ACCBus <= o_MBRBus;
+						elsif o_CP(4) = '1' then
+							i_ACCTakeIn <= '1';
+						elsif o_CP(5) = '1' then
+							i_ACCTakeIn <= '0';
+							i_ACCBus <= o_ALU;
+						elsif o_CP(7) = '1' then
+							STATE <= '0';
+							i_MARBus <= o_PCBus;
+							i_MARTakeIn <= '1';
+						end if;
+					end if;
+				elsif Instruction = "0111" then
+					if STATE = '0' then
+						if o_CP(7) = '1' then
+							STATE <= '1';
+							i_MARBus <= o_IRBus(11 DOWNTO 0);
+						end if;
+					else
+						if o_CP(3) = '1' then
+							i_MBRClear <= '1';
+						elsif o_CP(4) = '1' then
+							i_MBRClear <= '0';
+							i_MBRBus <= o_ACCBus;
+							i_MBRTakeIn <= '1';
+						elsif o_CP(5) = '1' then
+							i_MBRTakeIn <= '0';
+						elsif o_CP(7) = '1' then
+							STATE <= '0';
+							i_MARBus <= o_PCBus;
+							i_MARTakeIn <= '1';
+						end if;
 					end if;
 				end if;
-			end if;
-			-- STOP Button
-			if w_STOP = '1' then
-				r_RUN  <= '0';
-			end if;
-			
-		-- START/RESUME
-		else
-			if w_START = '1' and o_CP(7) = '1' then
-				r_RUN <= '1';
+				-- STOP Button
+				if w_START = '0' and w_STOP = '1' then
+					r_RUN  <= '0';
+				end if;
+				
+			-- START/RESUME
+			elsif r_RUN = '0' then
+				if w_START = '1' and w_STOP = '0' and o_CP(7) = '1' then
+					r_RUN <= '1';
+				end if;
 			end if;
 		end if;
 	end process;

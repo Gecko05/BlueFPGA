@@ -38,8 +38,8 @@ entity Debounce_Switch is
 end entity Debounce_Switch;
 
 architecture Behavioral of Debounce_Switch is
-  -- Set for 1,000,000 clock ticks of 100 MHz clock (10 ms)
-  constant c_DEBOUNCE_LIMIT : integer := 1000000;
+  -- Set for 1,000,000 clock ticks of 100 MHz clock (10 ms) 1000000
+  constant c_DEBOUNCE_LIMIT : integer := 2;
  
   signal r_Count : integer range 0 to c_DEBOUNCE_LIMIT := 0;
   signal r_State : std_logic := '0';

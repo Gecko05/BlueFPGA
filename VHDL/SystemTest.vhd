@@ -82,21 +82,18 @@ BEGIN
    begin		
       -- hold reset state for 100 ns.
       wait for 100 ns;	
-
-      wait for CLK_100MHz_period*10;
-
       -- insert stimulus here 
 		-- Turn ON
 		i_PB(0) <= '1'; -- START
 		i_PB(1) <= '1'; -- STOP
-		wait for CLK_100MHz_period;
+		wait for CLK_100MHz_period * 16;
 		-- Turn ON
 		i_PB(0) <= '0'; 
 		i_PB(1) <= '1';
 		wait for CLK_100MHz_period * 16;
 		i_PB(0) <= '1';
 		i_PB(1) <= '1';
-		wait for 1 us;
+		wait for CLK_100MHz_period * 16;
 		-- Turn OFF
 		i_PB(0) <= '1';
 		i_PB(1) <= '0';

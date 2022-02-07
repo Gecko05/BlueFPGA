@@ -39,7 +39,7 @@ entity segDisp is
 end segDisp;
 
 architecture Behavioral of segDisp is
-	signal r_Hex : STD_LOGIC_VECTOR(0 TO 7) := "00000000";
+	signal r_Hex : STD_LOGIC_VECTOR(0 TO 7) := "00110001";
 	signal r_Toggle : STD_LOGIC := '0';
 	signal r_DNibble : STD_LOGIC_VECTOR (3 DOWNTO 0) := "0000";
 	constant CLK_120FPS : natural := 416500;

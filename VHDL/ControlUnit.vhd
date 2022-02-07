@@ -32,7 +32,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity ControlUnit is
 	Port(
 		CLK_100MHz : in STD_LOGIC;
---		i_PB : in STD_LOGIC_VECTOR(0 TO 1);
+		Switch : in STD_LOGIC_VECTOR(0 TO 1);
 		o_LED : out STD_LOGIC_VECTOR(0 TO 7);
 		SevenSegment : out STD_LOGIC_VECTOR(0 TO 7);
 		SevenSegmentEnable : out STD_LOGIC_VECTOR(0 TO 1);
@@ -64,7 +64,22 @@ architecture rtl of ControlUnit is
 		);
 	END COMPONENT;
 	
+	-- Debounce Switch
+	COMPONENT Debounce_Switch
+	PORT(
+		i_Clk : IN std_logic;
+		i_Switch : IN std_logic;          
+		o_Switch : OUT std_logic
+		);
+	END COMPONENT;
+	
+	signal i_Button : STD_LOGIC_VECTOR (1 DOWNTO 0);
+	
 	signal dispData : std_logic_vector(7 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 8));
+	
+	-- Power Management
+	signal w_START : STD_LOGIC := '0';
+	signal w_STOP : STD_LOGIC := '1';
 begin
 	-- Clock and power
 	CLK_Sys: clockSystem PORT MAP(
@@ -81,8 +96,39 @@ begin
 		i_DATA => dispData
 	);
 	
-	dispData <= o_CP;
+	-- Debounce Switches
+	Inst_Debounce_Switch0: Debounce_Switch PORT MAP(
+		i_Clk => CLK_100MHz,
+		i_Switch => Switch(0),
+		o_Switch => i_Button(0)
+	);
+	
+	Inst_Debounce_Switch1: Debounce_Switch PORT MAP(
+		i_Clk => CLK_100MHz,
+		i_Switch => Switch(1),
+		o_Switch => i_Button(1)
+	);
+	
 	o_LED <= o_CP;
 	IO_P6(0) <= CPU_CLK;
+	w_START <= not(i_Button(0));
+	w_STOP <= not(i_Button(1));
+	
+	CU_loop : process(CPU_CLK, i_Button, dispData, w_STOP, w_START, r_RUN, o_CP) begin
+		if rising_edge(CLK_100MHz) then
+			if r_RUN = '1' then
+				-- Do RUN stuff
+				dispData <= X"FF";
+				if w_START = '0' and w_STOP = '1' then
+					r_RUN <= '0';
+				end if;
+			else
+				dispData <= X"00";
+				if w_START = '1' and w_STOP = '0' and o_CP(7) = '1'  then
+					r_RUN <= '1';
+				end if;
+			end if;
+		end if;
+	end process;
 end rtl;
 
