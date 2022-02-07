@@ -50,7 +50,6 @@ architecture rtl of ControlUnit is
 		);
 	END COMPONENT;
 	
-	signal r_RUN : STD_LOGIC := '0';
 	signal o_CP : STD_LOGIC_VECTOR(0 TO 7) := STD_LOGIC_VECTOR(to_unsigned(0,8));
 	signal CPU_CLK : STD_LOGIC := '0';
 	
@@ -64,6 +63,8 @@ architecture rtl of ControlUnit is
 		);
 	END COMPONENT;
 	
+	signal dispData : std_logic_vector(7 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 8));
+	
 	-- Debounce Switch
 	COMPONENT Debounce_Switch
 	PORT(
@@ -73,13 +74,21 @@ architecture rtl of ControlUnit is
 		);
 	END COMPONENT;
 	
-	signal i_Button : STD_LOGIC_VECTOR (1 DOWNTO 0);
+	signal i_Button : STD_LOGIC_VECTOR (1 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 2));
 	
-	signal dispData : std_logic_vector(7 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 8));
+	COMPONENT Power
+	PORT(
+		i_CLK_100MHz : IN std_logic;
+		i_START : IN std_logic;
+		i_STOP : IN std_logic;
+		i_CLK_7 : IN std_logic;
+		i_HALT : IN std_logic;          
+		o_RUN : OUT std_logic
+		);
+	END COMPONENT;
 	
-	-- Power Management
-	signal w_START : STD_LOGIC := '0';
-	signal w_STOP : STD_LOGIC := '1';
+	signal r_RUN : STD_LOGIC := '0';
+	signal r_HALT : STD_LOGIC := '0';
 begin
 	-- Clock and power
 	CLK_Sys: clockSystem PORT MAP(
@@ -109,25 +118,24 @@ begin
 		o_Switch => i_Button(1)
 	);
 	
+	Inst_Power: Power PORT MAP(
+		i_CLK_100MHz => CLK_100MHz,
+		i_START => not(i_Button(0)),
+		i_STOP => not (i_Button(1)),
+		i_CLK_7 => o_CP(7),
+		i_HALT => r_HALT,
+		o_RUN => r_RUN
+	);
+	
 	o_LED <= o_CP;
 	IO_P6(0) <= CPU_CLK;
-	w_START <= not(i_Button(0));
-	w_STOP <= not(i_Button(1));
+	r_HALT <= '0';
 	
-	CU_loop : process(CPU_CLK, i_Button, dispData, w_STOP, w_START, r_RUN, o_CP) begin
-		if rising_edge(CLK_100MHz) then
-			if r_RUN = '1' then
-				-- Do RUN stuff
-				dispData <= X"FF";
-				if w_START = '0' and w_STOP = '1' then
-					r_RUN <= '0';
-				end if;
-			else
-				dispData <= X"00";
-				if w_START = '1' and w_STOP = '0' and o_CP(7) = '1'  then
-					r_RUN <= '1';
-				end if;
-			end if;
+	CU_loop : process(CLK_100MHz, CPU_CLK, i_Button, dispData, r_RUN, o_CP) begin
+		if r_RUN = '1' then
+			dispData <= X"FF";
+		else
+			dispData <= X"00";
 		end if;
 	end process;
 end rtl;
