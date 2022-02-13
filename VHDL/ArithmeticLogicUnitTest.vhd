@@ -2,10 +2,10 @@
 -- Company: 
 -- Engineer:
 --
--- Create Date:   13:08:12 08/16/2020
+-- Create Date:   20:00:18 02/13/2022
 -- Design Name:   
--- Module Name:   /home/gecko/Blue/ArithmeticLogicUnitTest.vhd
--- Project Name:  Blue
+-- Module Name:   /home/ise/XilinxShared/BlueFPGA/VHDL/ArithmeticLogicUnitTest.vhd
+-- Project Name:  BLUE
 -- Target Device:  
 -- Tool versions:  
 -- Description:   
@@ -30,7 +30,7 @@ USE ieee.std_logic_1164.ALL;
  
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---USE ieee.numeric_std.ALL;
+USE ieee.numeric_std.ALL;
  
 ENTITY ArithmeticLogicUnitTest IS
 END ArithmeticLogicUnitTest;
@@ -41,48 +41,47 @@ ARCHITECTURE behavior OF ArithmeticLogicUnitTest IS
  
     COMPONENT ArithmeticLogicUnit
     PORT(
-         i_ALU : IN  std_logic_vector(15 downto 0);
-         i_NUM : IN  std_logic_vector(15 downto 0);
-         i_OP : IN  std_logic_vector(2 downto 0);
-         i_CLK : IN  std_logic;
-			o_OF : OUT std_logic;
-         o_ALU : OUT  std_logic_vector(15 downto 0)
+         S : IN  std_logic_vector(3 downto 0);
+         A : IN  std_logic_vector(15 downto 0);
+         B : IN  std_logic_vector(15 downto 0);
+         OVER : OUT  std_logic;
+         F : OUT  std_logic_vector(15 downto 0)
         );
     END COMPONENT;
     
 
    --Inputs
-   signal i_ALU : std_logic_vector(15 downto 0) := (others => '0');
-   signal i_NUM : std_logic_vector(15 downto 0) := (others => '0');
-   signal i_OP : std_logic_vector(2 downto 0) := (others => '0');
-   signal i_CLK : std_logic := '0';
+   signal S : std_logic_vector(3 downto 0) := (others => '0');
+   signal A : std_logic_vector(15 downto 0) := (others => '0');
+   signal B : std_logic_vector(15 downto 0) := (others => '0');
 
  	--Outputs
-   signal o_ALU : std_logic_vector(15 downto 0);
-	signal o_OF : std_logic;
-
-   -- Clock period definitions
-   constant i_CLK_period : time := 10 ns;
+   signal OVER : std_logic;
+   signal F : std_logic_vector(15 downto 0);
+	signal clock : std_logic;
+   -- No clocks detected in port list. Replace <clock> below with 
+   -- appropriate port name 
+ 
+   constant clock_period : time := 10 ns;
  
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
    uut: ArithmeticLogicUnit PORT MAP (
-          i_ALU => i_ALU,
-          i_NUM => i_NUM,
-          i_OP => i_OP,
-          i_CLK => i_CLK,
-			 o_OF => o_OF,
-          o_ALU => o_ALU
+          S => S,
+          A => A,
+          B => B,
+          OVER => OVER,
+          F => F
         );
 
    -- Clock process definitions
-   i_CLK_process :process
+   clock_process :process
    begin
-		i_CLK <= '0';
-		wait for i_CLK_period/2;
-		i_CLK <= '1';
-		wait for i_CLK_period/2;
+		clock <= '0';
+		wait for clock_period/2;
+		clock <= '1';
+		wait for clock_period/2;
    end process;
  
 
@@ -92,28 +91,48 @@ BEGIN
       -- hold reset state for 100 ns.
       wait for 100 ns;	
 
-      wait for i_CLK_period*5;
-		i_ALU <= "0000000000001010"; -- 8
-		i_NUM <= "1111111111111110"; -- -2
-		--        000|000|000|000|
-		-- 		 10 - 2 = 8
-		i_OP <= "001";
+      wait for clock_period*10;
 		
-		wait for i_CLK_period*5;
-		i_ALU <= "0000000000001101"; -- 13
-		i_NUM <= "1111111111101100"; -- -20
-		--        000|000|000|000|
-		-- 		 13 - 20 = -7 = 1...001
-		i_OP <= "001";
-		
-		wait for i_CLK_period*5;
-		i_ALU <= "0111110100000000"; -- 32000
-		i_NUM <= "0010011110001011"; -- 10123
-		i_OP <= "001";
-		-- Should overflow
-		-- 42123
-		-- 1010010010001011
-		
+      -- insert stimulus here 
+		-- SUM
+		S <= "0001";
+		A <= STD_LOGIC_VECTOR(to_unsigned(1234, 16));
+		B <= STD_LOGIC_VECTOR(to_unsigned(0, 16));
+		wait for clock_period*10;
+		A <= STD_LOGIC_VECTOR(to_unsigned(100, 16));
+		B <= STD_LOGIC_VECTOR(to_unsigned(50, 16));
+		wait for clock_period*10;
+		A <= STD_LOGIC_VECTOR(to_unsigned(65535, 16));
+		B <= STD_LOGIC_VECTOR(to_unsigned(2, 16));
+		wait for clock_period*10;
+		-- XOR
+		S <= "0010";
+		A <= STD_LOGIC_VECTOR(to_unsigned(1234, 16));
+		B <= STD_LOGIC_VECTOR(to_unsigned(0, 16));
+		wait for clock_period*10;
+		A <= STD_LOGIC_VECTOR(to_unsigned(65535, 16));
+		B <= STD_LOGIC_VECTOR(to_unsigned(2, 16));
+		wait for clock_period*10;
+		-- AND
+		S <= "0011";
+		A <= STD_LOGIC_VECTOR(to_unsigned(1234, 16));
+		B <= STD_LOGIC_VECTOR(to_unsigned(0, 16));
+		wait for clock_period*10;
+		-- IOR
+		S <= "0100";
+		A <= STD_LOGIC_VECTOR(to_unsigned(1234, 16));
+		B <= STD_LOGIC_VECTOR(to_unsigned(100, 16));
+		wait for clock_period*10;
+		-- NOT
+		S <= "0101";
+		A <= STD_LOGIC_VECTOR(to_unsigned(1234, 16));
+		B <= STD_LOGIC_VECTOR(to_unsigned(100, 16));
+		wait for clock_period*10;
+		-- RAL
+		S <= "1101";
+		A <= STD_LOGIC_VECTOR(to_unsigned(65500, 16));
+		B <= STD_LOGIC_VECTOR(to_unsigned(100, 16));
+		wait for clock_period*10;
       wait;
    end process;
 
