@@ -34,7 +34,7 @@ entity ArithmeticLogicUnit is
 	PORT(
 		S : in STD_LOGIC_VECTOR (3 DOWNTO 0);
 		A, B : in STD_LOGIC_VECTOR(15 DOWNTO 0);
-		OVER : out STD_LOGIC;
+		OVR : out STD_LOGIC;
 		F : out STD_LOGIC_VECTOR(15 DOWNTO 0)
 	);
 end ArithmeticLogicUnit;
@@ -46,24 +46,24 @@ begin
 	process (A, B, S)
 	begin
 		case S is 
-		when "0001" =>
+		when "0001" => -- ADD
 			R <= A + B;
-			OVER <= (A(15) AND B(15) AND (NOT(R(15)))) OR ((NOT(A(15))) AND (NOT(B(15))) AND R(15));
-		when "0010" =>
+			OVR <= (A(15) AND B(15) AND (NOT(R(15)))) OR ((NOT(A(15))) AND (NOT(B(15))) AND R(15));
+		when "0010" => -- XOR
 			R <= A XOR B;
-			OVER <= '0';
-		when "0011" =>
+			OVR <= '0';
+		when "0011" => -- AND
 			R <= A AND B;
-			OVER <= '0';
-		when "0100" =>
+			OVR <= '0';
+		when "0100" => -- IOR
 			R <= A OR B;
-			OVER <= '0';
-		when "0101" =>
+			OVR <= '0';
+		when "0101" => -- NOT
 			R <= NOT(A);
-			OVER <= '0';
-		when others =>
+			OVR <= '0';
+		when others => -- RAL
 			R <= A(14 DOWNTO 0) & A(15);
-			OVER <= '0';
+			OVR <= '0';
 		end case;
 	end process;
 end Behavioral;

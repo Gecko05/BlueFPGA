@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date:    16:04:37 02/07/2022 
+-- Create Date:    17:43:19 02/19/2022 
 -- Design Name: 
--- Module Name:    Power - Behavioral 
+-- Module Name:    Sandbox - Behavioral 
 -- Project Name: 
 -- Target Devices: 
 -- Tool versions: 
@@ -29,30 +29,18 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity Power is
+entity Sandbox is
 	PORT(
-		i_CLK_100MHz : in STD_LOGIC;
-		i_START : in STD_LOGIC;
-		i_STOP : in STD_LOGIC;
-		i_HALT : in STD_LOGIC;
-		o_RUN : out STD_LOGIC
+		i_A : IN std_logic;
+		o_X : OUT std_logic;
+		o_Y : OUT std_logic;
 	);
-end Power;
-architecture Behavioral of Power is
-	signal r_RUN : STD_LOGIC := '0';
+end Sandbox;
+
+architecture Behavioral of Sandbox is
+	signal 
 begin
-	POWER_LOOP : process(i_CLK_100MHz, i_START, i_STOP) begin
-		if rising_edge(i_CLK_100MHz) then
-			if i_START = '1' and i_STOP = '0' and r_RUN = '0' and i_HALT = '0' then
-				r_RUN <= '1';
-			elsif i_START = '0' and i_STOP = '1' and r_RUN = '1' then
-				r_RUN <= '0';
-			elsif i_HALT = '1' and i_START = '0' and r_RUN = '1' then
-				r_RUN <= '0';
-			else
-			end if;
-		end if;
-	end process;
-	o_RUN <= r_RUN;
+
+
 end Behavioral;
 

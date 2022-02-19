@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date:    16:04:37 02/07/2022 
+-- Create Date:    19:25:21 02/19/2022 
 -- Design Name: 
--- Module Name:    Power - Behavioral 
+-- Module Name:    ClockEncoder - Behavioral 
 -- Project Name: 
 -- Target Devices: 
 -- Tool versions: 
@@ -29,30 +29,35 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity Power is
+entity ClockEncoder is
 	PORT(
-		i_CLK_100MHz : in STD_LOGIC;
-		i_START : in STD_LOGIC;
-		i_STOP : in STD_LOGIC;
-		i_HALT : in STD_LOGIC;
-		o_RUN : out STD_LOGIC
+		E: IN std_logic; -- enable
+		A: OUT std_logic_vector(3 DOWNTO 0);
+		Y: IN std_logic_vector(7 DOWNTO 0));
 	);
-end Power;
-architecture Behavioral of Power is
-	signal r_RUN : STD_LOGIC := '0';
+end ClockEncoder;
+
+architecture Behavioral of ClockEncoder is
+	PROCESS (E, A)
+	BEGIN
+		IF (E = '0') THEN -- disabled
+			A <= (OTHERS => '0'); -- 16-bit vector of 0
+		ELSE
+			CASE Y IS -- enabled
+				WHEN "00000001" => A <= "000";
+				WHEN "00000010" => A <= "001";
+				WHEN "00000100" => A <= "010";
+				WHEN "00001000" => A <= "011";
+				WHEN "00010000" => A <= "100";
+				WHEN "00100000" => A <= "101";
+				WHEN "01000000" => A <= "110";
+				WHEN "10000000" => A <= "111";
+				WHEN OTHERS => NULL;
+			END CASE;
+		END IF;
+	END PROCESS;
 begin
-	POWER_LOOP : process(i_CLK_100MHz, i_START, i_STOP) begin
-		if rising_edge(i_CLK_100MHz) then
-			if i_START = '1' and i_STOP = '0' and r_RUN = '0' and i_HALT = '0' then
-				r_RUN <= '1';
-			elsif i_START = '0' and i_STOP = '1' and r_RUN = '1' then
-				r_RUN <= '0';
-			elsif i_HALT = '1' and i_START = '0' and r_RUN = '1' then
-				r_RUN <= '0';
-			else
-			end if;
-		end if;
-	end process;
-	o_RUN <= r_RUN;
+
+
 end Behavioral;
 

@@ -75,13 +75,13 @@ architecture rtl of ControlUnit is
 	END COMPONENT;
 	
 	signal i_Button : STD_LOGIC_VECTOR (1 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 2));
+	signal o_Switch : STD_LOGIC_VECTOR (1 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 2));
 	
 	COMPONENT Power
 	PORT(
 		i_CLK_100MHz : IN std_logic;
 		i_START : IN std_logic;
 		i_STOP : IN std_logic;
-		i_CLK_7 : IN std_logic;
 		i_HALT : IN std_logic;          
 		o_RUN : OUT std_logic
 		);
@@ -109,20 +109,19 @@ begin
 	Inst_Debounce_Switch0: Debounce_Switch PORT MAP(
 		i_Clk => CLK_100MHz,
 		i_Switch => Switch(0),
-		o_Switch => i_Button(0)
+		o_Switch => o_Switch(0)
 	);
 	
 	Inst_Debounce_Switch1: Debounce_Switch PORT MAP(
 		i_Clk => CLK_100MHz,
 		i_Switch => Switch(1),
-		o_Switch => i_Button(1)
+		o_Switch => o_Switch(1)
 	);
 	
 	Inst_Power: Power PORT MAP(
 		i_CLK_100MHz => CLK_100MHz,
-		i_START => not(i_Button(0)),
-		i_STOP => not (i_Button(1)),
-		i_CLK_7 => o_CP(7),
+		i_START => i_Button(0),
+		i_STOP => i_Button(1),
 		i_HALT => r_HALT,
 		o_RUN => r_RUN
 	);
@@ -130,10 +129,29 @@ begin
 	o_LED <= o_CP;
 	IO_P6(0) <= CPU_CLK;
 	r_HALT <= '0';
+	i_Button <= NOT(o_Switch);
 	
 	CU_loop : process(CLK_100MHz, CPU_CLK, i_Button, dispData, r_RUN, o_CP) begin
 		if r_RUN = '1' then
 			dispData <= X"FF";
+			if o_CP(0) = 1 then
+			
+			elsif o_CP(1) = 1 then
+			
+			elsif o_CP(2) = 1 then
+			
+			elsif o_CP(3) = 1 then
+			
+			elsif o_CP(4) = 1 then
+			
+			elsif o_CP(5) = 1 then
+			
+			elsif o_CP(6) = 1 then
+			
+			elsif o_CP(7) = 1 then
+			
+			else
+			end if;
 		else
 			dispData <= X"00";
 		end if;
