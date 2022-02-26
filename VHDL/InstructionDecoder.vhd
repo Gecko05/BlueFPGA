@@ -30,14 +30,14 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity InstructionDecoder is
+	PORT(
+		E : IN std_logic; -- enable
+		A : IN std_logic_vector(3 DOWNTO 0); -- 4 bit instruction
+		Y : OUT std_logic_vector(15 DOWNTO 0) -- data bus output
+	);
 end InstructionDecoder;
 
 architecture Behavioral of InstructionDecoder is
-	PORT(
-		E: IN std_logic; -- enable
-		A: IN std_logic_vector(3 DOWNTO 0); -- 4 bit instruction
-		Y: OUT std_logic_vector(15 DOWNTO 0)); -- data bus output
-	);
 begin
 	PROCESS (E, A)
 	BEGIN

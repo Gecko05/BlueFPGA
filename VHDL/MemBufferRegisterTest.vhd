@@ -1,0 +1,117 @@
+--------------------------------------------------------------------------------
+-- Company: 
+-- Engineer:
+--
+-- Create Date:   12:40:33 07/25/2020
+-- Design Name:   
+-- Module Name:   /home/gecko/14.7/ISE_DS/BLUE/MemBufferRegisterTest.vhd
+-- Project Name:  BLUE
+-- Target Device:  
+-- Tool versions:  
+-- Description:   
+-- 
+-- VHDL Test Bench Created by ISE for module: MemBufferRegister
+-- 
+-- Dependencies:
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+--
+-- Notes: 
+-- This testbench has been automatically generated using types std_logic and
+-- std_logic_vector for the ports of the unit under test.  Xilinx recommends
+-- that these types always be used for the top-level I/O of a design in order
+-- to guarantee that the testbench will bind correctly to the post-implementation 
+-- simulation model.
+--------------------------------------------------------------------------------
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+ 
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--USE ieee.numeric_std.ALL;
+ 
+ENTITY MemBufferRegisterTest IS
+END MemBufferRegisterTest;
+ 
+ARCHITECTURE behavior OF MemBufferRegisterTest IS 
+ 
+    -- Component Declaration for the Unit Under Test (UUT)
+ 
+    COMPONENT MemBufferRegister
+    PORT(
+         i_Clock : IN  std_logic;
+         i_MBR_Clear : IN  std_logic;
+         i_MBR_Bus : IN  std_logic_vector(0 to 15);
+         i_MBR_ReadBus : IN  std_logic_vector(0 to 15);
+         i_MBR_Load : IN  std_logic;
+         o_MBR_WriteBus : OUT  std_logic_vector(0 to 15);
+         o_MBR_Bus : OUT  std_logic_vector(0 to 15);
+         o_MBR_WEA : OUT STD_LOGIC_VECTOR(0 TO 0)
+        );
+    END COMPONENT;
+    
+
+   --Inputs
+   signal i_Clock : std_logic := '0';
+   signal i_MBR_Clear : std_logic := '0';
+   signal i_MBR_Bus : std_logic_vector(0 to 15) := (others => '0');
+   signal i_MBR_ReadBus : std_logic_vector(0 to 15) := (others => '0');
+   signal i_MBR_Load : std_logic := '0';
+
+ 	--Outputs
+   signal o_MBR_WriteBus : std_logic_vector(0 to 15);
+   signal o_MBR_Bus : std_logic_vector(0 to 15);
+   signal o_MBR_WEA : std_logic_vector(0 to 0);
+
+   -- Clock period definitions
+   constant i_Clock_period : time := 10 ns;
+ 
+BEGIN
+ 
+	-- Instantiate the Unit Under Test (UUT)
+   uut: MemBufferRegister PORT MAP (
+          i_Clock => i_Clock,
+          i_MBR_Clear => i_MBR_Clear,
+          i_MBR_Bus => i_MBR_Bus,
+          i_MBR_ReadBus => i_MBR_ReadBus,
+          i_MBR_Load => i_MBR_Load,
+          o_MBR_WriteBus => o_MBR_WriteBus,
+          o_MBR_Bus => o_MBR_Bus,
+          o_MBR_WEA => o_MBR_WEA
+        );
+
+   -- Clock process definitions
+   i_Clock_process :process
+   begin
+		i_Clock <= '0';
+		wait for i_Clock_period/2;
+		i_Clock <= '1';
+		wait for i_Clock_period/2;
+   end process;
+ 
+
+   -- Stimulus process
+   stim_proc: process
+   begin		
+      -- hold reset state for 100 ns.
+      wait for 100 ns;	
+
+      wait for i_Clock_period*10;
+
+      -- insert stimulus here 
+		i_MBR_Bus <= X"2301";
+		wait for 10 ns;
+		i_MBR_Load <= '1';
+		wait for 10 ns;
+		i_MBR_Load <= '0';
+		wait for 10 ns;
+		i_MBR_Clear <= '1';
+		wait for 10 ns;
+		i_MBR_Clear <= '0';
+		wait for 10 ns;
+      wait;
+   end process;
+
+END;

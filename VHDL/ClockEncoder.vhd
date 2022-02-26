@@ -31,13 +31,14 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity ClockEncoder is
 	PORT(
-		E: IN std_logic; -- enable
-		A: OUT std_logic_vector(3 DOWNTO 0);
-		Y: IN std_logic_vector(7 DOWNTO 0));
+		E : IN std_logic; -- enable
+		A : OUT std_logic_vector(3 DOWNTO 0);
+		Y : IN std_logic_vector(7 DOWNTO 0)
 	);
 end ClockEncoder;
 
 architecture Behavioral of ClockEncoder is
+begin
 	PROCESS (E, A)
 	BEGIN
 		IF (E = '0') THEN -- disabled
@@ -56,8 +57,5 @@ architecture Behavioral of ClockEncoder is
 			END CASE;
 		END IF;
 	END PROCESS;
-begin
-
-
 end Behavioral;
 

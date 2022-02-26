@@ -46,14 +46,14 @@ architecture rtl of programCounter is
 	signal PCCounter : natural range 0 to 4095 := 0;
 begin
 	PCLoop : process (i_PCClear, i_PCLoad, i_PCInc, i_PCBus, i_Clock, PCCounter) begin
-		if rising_edge(i_PCClear) then
-			PCCounter <= 0;
-		elsif rising_edge(i_PCLoad) then
-			PCCounter <= to_integer(unsigned(i_PCBus));	
-		elsif rising_edge(i_PCInc) then
-			PCCounter <= PCCounter + 1;
-		else
-			-- Do nothing
+		if rising_edge(i_Clock) then
+			if i_PCClear = '1' then
+				PCCounter <= 0;
+			elsif i_PCLoad = '1' then
+				PCCounter <= to_integer(unsigned(i_PCBus));
+			elsif i_PCInc = '1' then
+				PCCounter <= PCCounter + 1;
+			end if;
 		end if;
 		PCVal <= std_logic_vector(to_unsigned(PCCounter, 12));
 	end process;

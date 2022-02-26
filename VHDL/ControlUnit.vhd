@@ -31,12 +31,12 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity ControlUnit is
 	Port(
-		CLK_100MHz : in STD_LOGIC;
-		Switch : in STD_LOGIC_VECTOR(0 TO 1);
-		o_LED : out STD_LOGIC_VECTOR(0 TO 7);
-		SevenSegment : out STD_LOGIC_VECTOR(0 TO 7);
-		SevenSegmentEnable : out STD_LOGIC_VECTOR(0 TO 1);
-		IO_P6 : inout STD_LOGIC_VECTOR(0 TO 0)
+		CLK_100MHz : in std_logic;
+		Switch : in std_logic_vector(0 TO 1);
+		o_LED : out std_logic_vector(0 TO 7);
+		SevenSegment : out std_logic_vector(0 TO 7);
+		SevenSegmentEnable : out std_logic_vector(0 TO 1);
+		IO_P6 : inout std_logic_vector(0 TO 0)
 	);
 end ControlUnit;
 
@@ -50,8 +50,8 @@ architecture rtl of ControlUnit is
 		);
 	END COMPONENT;
 	
-	signal o_CP : STD_LOGIC_VECTOR(0 TO 7) := STD_LOGIC_VECTOR(to_unsigned(0,8));
-	signal CPU_CLK : STD_LOGIC := '0';
+	signal o_CP : std_logic_vector(0 TO 7) := std_logic_vector(to_unsigned(0,8));
+	signal CPU_CLK : std_logic := '0';
 	
 	-- Seven Segment Display
 	COMPONENT segDisp
@@ -63,7 +63,7 @@ architecture rtl of ControlUnit is
 		);
 	END COMPONENT;
 	
-	signal dispData : std_logic_vector(7 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 8));
+	signal dispData : std_logic_vector(7 downto 0) := std_logic_vector(to_unsigned(0, 8));
 	
 	-- Debounce Switch
 	COMPONENT Debounce_Switch
@@ -74,9 +74,10 @@ architecture rtl of ControlUnit is
 		);
 	END COMPONENT;
 	
-	signal i_Button : STD_LOGIC_VECTOR (1 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 2));
-	signal o_Switch : STD_LOGIC_VECTOR (1 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 2));
+	signal i_Button : std_logic_vector (1 DOWNTO 0) := std_logic_vector(to_unsigned(0, 2));
+	signal o_Switch : std_logic_vector (1 DOWNTO 0) := std_logic_vector(to_unsigned(0, 2));
 	
+	-- Power Management
 	COMPONENT Power
 	PORT(
 		i_CLK_100MHz : IN std_logic;
@@ -87,8 +88,91 @@ architecture rtl of ControlUnit is
 		);
 	END COMPONENT;
 	
-	signal r_RUN : STD_LOGIC := '0';
-	signal r_HALT : STD_LOGIC := '0';
+	signal r_RUN : std_logic := '0';
+	signal r_HALT : std_logic := '0';
+	
+	-- Memory Address Register
+	COMPONENT MemAddrRegister
+	PORT(
+		i_Clock : IN std_logic;
+		i_Bus : IN std_logic_vector(11 downto 0);
+		i_Load : IN std_logic;          
+		o_Bus : OUT std_logic_vector(11 downto 0)
+		);
+	END COMPONENT;
+	
+	signal MAR_Input : std_logic_vector(11 downto 0) := std_logic_vector(to_unsigned(0, 12));
+	signal MAR_Load : std_logic := '0';
+	signal MAR_Output : std_logic_vector(11 downto 0) := std_logic_vector(to_unsigned(0, 12));
+	
+	-- Memory Buffer Register
+	COMPONENT MemBufferRegister
+	PORT(
+		i_Clock : IN std_logic;
+		i_Clear : IN std_logic;
+		i_Bus : IN std_logic_vector(15 downto 0);
+		i_ReadBus : IN std_logic_vector(15 downto 0);
+		i_Load : IN std_logic;          
+		o_WriteBus : OUT std_logic_vector(15 downto 0);
+		o_Bus : OUT std_logic_vector(15 downto 0);
+		o_WEA : OUT std_logic_vector(0 to 0)
+		);
+	END COMPONENT;
+	
+	signal MBR_Clear : std_logic := '0';
+	signal MBR_Load : std_logic := '0';
+	signal MBR_Input : std_logic_vector(15 downto 0) := std_logic_vector(to_unsigned(0, 16));
+	signal MBR_ReadBus : std_logic_vector(15 downto 0) := std_logic_vector(to_unsigned(0, 16));
+	signal MBR_WriteBus : std_logic_vector(15 downto 0) := std_logic_vector(to_unsigned(0, 16));
+	signal MBR_Output : std_logic_vector(15 downto 0) := std_logic_vector(to_unsigned(0, 16));
+	signal MBR_WEA : std_logic_vector(0 to 0) := std_logic_vector(to_unsigned(0, 1));
+	
+	-- RAM Block
+	COMPONENT RAM
+	  PORT (
+		 clka : IN STD_LOGIC;
+		 wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+		 addra : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
+		 dina : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+		 douta : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
+	  );
+	END COMPONENT;
+	
+	-- Program Counter
+	COMPONENT programCounter
+	PORT(
+		i_Clock : IN std_logic;
+		i_PCBus : IN std_logic_vector(11 downto 0);
+		i_PCInc : IN std_logic;
+		i_PCClear : IN std_logic;
+		i_PCLoad : IN std_logic;          
+		o_PCBus : OUT std_logic_vector(11 downto 0)
+		);
+	END COMPONENT;
+	
+	signal PC_Input : STD_LOGIC_VECTOR(11 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 12));
+	signal PC_Inc : STD_LOGIC := '0';
+	signal PC_Clear : STD_LOGIC := '0';
+	signal PC_Load : STD_LOGIC := '0';
+	signal PC_Output : STD_LOGIC_VECTOR(11 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 12));
+	
+	-- Instruction Register
+	COMPONENT GenericReg
+	PORT(
+		Clock : IN std_logic;
+		Clear : IN std_logic;
+		Load : IN std_logic;
+		D : IN std_logic_vector(15 downto 0);          
+		Q : OUT std_logic_vector(15 downto 0)
+		);
+	END COMPONENT;
+	
+	signal IR_Input : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal IR_Clear : STD_LOGIC := '0';
+	signal IR_Output : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal IR_Load : STD_LOGIC := '0';
+	-- State
+	signal STATE : STD_LOGIC := '0'; -- Two States, 0 Fetch, 1 Execute
 begin
 	-- Clock and power
 	CLK_Sys: clockSystem PORT MAP(
@@ -126,31 +210,73 @@ begin
 		o_RUN => r_RUN
 	);
 	
+	-- Memory Address Register
+	Inst_MemAddrRegister: MemAddrRegister PORT MAP(
+		i_Clock => CPU_CLK,
+		i_Bus => MAR_Input,
+		i_Load => MAR_Load,
+		o_Bus => MAR_Output
+	);
+	
+	-- Memory Buffer Register
+	Inst_MemBufferRegister: MemBufferRegister PORT MAP(
+		i_Clock => CPU_CLK,
+		i_Clear => MBR_Clear,
+		i_Bus => MBR_Input,
+		i_ReadBus => MBR_ReadBus,
+		i_Load => MBR_Load,
+		o_WriteBus => MBR_WriteBus,
+		o_Bus => MBR_Output,
+		o_WEA => MBR_WEA
+	);
+	
+	-- Instruction Register
+	Inst_GenericReg: GenericReg PORT MAP(
+		Clock => CPU_CLK,
+		Clear => IR_Clear,
+		Load => IR_Load,
+		D => IR_Input,
+		Q => IR_Output
+	);
+	
+	-- RAM Block
+	RAM_Block : RAM PORT MAP (
+		 clka => CPU_CLK,
+		 wea => MBR_WEA,
+		 addra => MAR_Output,
+		 dina => MBR_WriteBus,
+		 douta => MBR_ReadBus
+	);
+	
+	-- Program Counter
+	Inst_programCounter: programCounter PORT MAP(
+		i_Clock => CPU_CLK,
+		i_PCBus => PC_Input,
+		o_PCBus => PC_Output,
+		i_PCInc => PC_Inc,
+		i_PCClear => PC_Clear,
+		i_PCLoad => PC_Load
+	);
+	
+	-- Board	
 	o_LED <= o_CP;
 	IO_P6(0) <= CPU_CLK;
-	r_HALT <= '0';
 	i_Button <= NOT(o_Switch);
 	
+	r_HALT <= '0';
+	-- Permanent connections
+	IR_Input <= MBR_Output;
+	
+	-- This will change
+	MAR_Input <= PC_Output;
+	--dispData <= PC_Output(7 DOWNTO 0);
 	CU_loop : process(CLK_100MHz, CPU_CLK, i_Button, dispData, r_RUN, o_CP) begin
 		if r_RUN = '1' then
-			dispData <= X"FF";
-			if o_CP(0) = 1 then
-			
-			elsif o_CP(1) = 1 then
-			
-			elsif o_CP(2) = 1 then
-			
-			elsif o_CP(3) = 1 then
-			
-			elsif o_CP(4) = 1 then
-			
-			elsif o_CP(5) = 1 then
-			
-			elsif o_CP(6) = 1 then
-			
-			elsif o_CP(7) = 1 then
-			
+			dispData <= PC_Output(7 DOWNTO 0);
+			if o_CP(1) = '1' then
+				PC_Inc <= '1';
 			else
+				PC_Inc <= '0';
 			end if;
 		else
 			dispData <= X"00";
