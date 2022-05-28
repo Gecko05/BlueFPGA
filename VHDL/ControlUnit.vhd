@@ -173,6 +173,7 @@ architecture rtl of ControlUnit is
 	signal IR_Load : STD_LOGIC := '0';
 	-- State
 	signal STATE : STD_LOGIC := '0'; -- Two States, 0 Fetch, 1 Execute
+	signal Instruction : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
 begin
 	-- Clock and power
 	CLK_Sys: clockSystem PORT MAP(
@@ -270,17 +271,38 @@ begin
 	-- This will change
 	MAR_Input <= PC_Output;
 	--dispData <= PC_Output(7 DOWNTO 0);
-	CU_loop : process(CLK_100MHz, CPU_CLK, i_Button, dispData, r_RUN, o_CP) begin
+	CU_loop : process(CPU_CLK, i_Button, dispData, r_RUN, o_CP, IR_Output, STATE, Instruction) begin
+		if STATE = '0' then
+			if o_CP(1) = '1' then
+				PC_Inc <= '1' AND r_RUN;
+			elsif o_CP(2) = '1' then
+				MBR_Clear <= '1' AND r_RUN;
+			elsif o_CP(3) = '1' then
+				IR_Clear <= '1' AND r_RUN;
+			elsif o_CP(4) = '1' then
+				IR_Load <= '1' AND r_RUN;
+			end if;
+		end if;
+			
+		-- JMP
+		if Instruction = "1010" then
+			if o_CP(5) = '1' then
+				PC_Clear <= '1' AND r_RUN;
+			elsif o_CP(6) = '1' then
+				PC_Clear <= '0' AND r_RUN;
+				PC_Input <= IR_Output(11 DOWNTO 0);
+				PC_Load <= '1' AND r_RUN;
+			else
+				PC_Load <= '0';
+			end if;
+		end if;
+		
 		if r_RUN = '1' then
 			dispData <= PC_Output(7 DOWNTO 0);
-			if o_CP(1) = '1' then
-				PC_Inc <= '1';
-			else
-				PC_Inc <= '0';
-			end if;
 		else
 			dispData <= X"00";
 		end if;
+		Instruction <= IR_Output(15 DOWNTO 12);
 	end process;
 end rtl;
 
