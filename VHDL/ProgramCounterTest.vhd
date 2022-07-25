@@ -46,7 +46,7 @@ ARCHITECTURE behavior OF ProgramCounterTest IS
          o_PCBus : OUT  std_logic_vector(0 to 11);
          i_PCInc : IN  std_logic;
          i_PCClear : IN  std_logic;
-         i_PCTakeIn : IN  std_logic
+         i_PCLoad : IN  std_logic
         );
     END COMPONENT;
     
@@ -55,7 +55,7 @@ ARCHITECTURE behavior OF ProgramCounterTest IS
    signal i_PCBus : std_logic_vector(0 to 11) := (others => '0');
    signal i_PCInc : std_logic := '0';
    signal i_PCClear : std_logic := '0';
-   signal i_PCTakeIn : std_logic := '0';
+   signal i_PCLoad : std_logic := '0';
 	signal myClock : std_logic;
 
  	--Outputs
@@ -74,7 +74,7 @@ BEGIN
           o_PCBus => o_PCBus,
           i_PCInc => i_PCInc,
           i_PCClear => i_PCClear,
-          i_PCTakeIn => i_PCTakeIn
+          i_PCLoad => i_PCLoad
         );
 
    -- Clock process definitions
@@ -92,14 +92,12 @@ BEGIN
    begin		
       -- hold reset state for 100 ns.
       wait for 100 ns;	
-
-      wait for myClock_period*10;
-
       -- insert stimulus here 
+		wait for 5 ns;
 		i_PCBus <= O"0001";
-		i_PCTakeIn <= '1';
+		i_PCLoad <= '1';
 		wait for 20 ns;
-		i_PCTakeIn <= '0';
+		i_PCLoad <= '0';
 		wait for 20 ns;
 		i_PCInc <= '1';
 		wait for 10 ns;
@@ -110,7 +108,7 @@ BEGIN
 		i_PCClear <= '0';
 		wait for 10 ns;
 		i_PCClear <= '1';
-		i_PCTakeIn <= '1';
+		i_PCLoad <= '1';
 		i_PCInc <= '1';
 		wait for 10 ns;
       wait;

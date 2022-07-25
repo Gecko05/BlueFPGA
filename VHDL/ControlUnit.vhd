@@ -128,7 +128,7 @@ architecture rtl of ControlUnit is
 	signal MBR_WEA : std_logic_vector(0 to 0) := std_logic_vector(to_unsigned(0, 1));
 	
 	-- RAM Block
-	COMPONENT RAM
+	COMPONENT RAM_Block
 	  PORT (
 		 clka : IN STD_LOGIC;
 		 wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
@@ -213,7 +213,7 @@ begin
 	
 	-- Memory Address Register
 	Inst_MemAddrRegister: MemAddrRegister PORT MAP(
-		i_Clock => CPU_CLK,
+		i_Clock => CLK_100MHz,
 		i_Bus => MAR_Input,
 		i_Load => MAR_Load,
 		o_Bus => MAR_Output
@@ -221,7 +221,7 @@ begin
 	
 	-- Memory Buffer Register
 	Inst_MemBufferRegister: MemBufferRegister PORT MAP(
-		i_Clock => CPU_CLK,
+		i_Clock => CLK_100MHz,
 		i_Clear => MBR_Clear,
 		i_Bus => MBR_Input,
 		i_ReadBus => MBR_ReadBus,
@@ -233,7 +233,7 @@ begin
 	
 	-- Instruction Register
 	Inst_GenericReg: GenericReg PORT MAP(
-		Clock => CPU_CLK,
+		Clock => CLK_100MHz,
 		Clear => IR_Clear,
 		Load => IR_Load,
 		D => IR_Input,
@@ -241,8 +241,8 @@ begin
 	);
 	
 	-- RAM Block
-	RAM_Block : RAM PORT MAP (
-		 clka => CPU_CLK,
+	RAM : RAM_Block PORT MAP (
+		 clka => CLK_100MHz,
 		 wea => MBR_WEA,
 		 addra => MAR_Output,
 		 dina => MBR_WriteBus,
@@ -251,7 +251,7 @@ begin
 	
 	-- Program Counter
 	Inst_programCounter: programCounter PORT MAP(
-		i_Clock => CPU_CLK,
+		i_Clock => CLK_100MHz,
 		i_PCBus => PC_Input,
 		o_PCBus => PC_Output,
 		i_PCInc => PC_Inc,
@@ -276,26 +276,36 @@ begin
 			if o_CP(1) = '1' then
 				PC_Inc <= '1' AND r_RUN;
 			elsif o_CP(2) = '1' then
+				PC_Inc <= '0';
 				MBR_Clear <= '1' AND r_RUN;
 			elsif o_CP(3) = '1' then
-				IR_Clear <= '1' AND r_RUN;
-			elsif o_CP(4) = '1' then
+				MBR_Clear <= '0';
 				IR_Load <= '1' AND r_RUN;
+			elsif o_CP(4) = '1' then
+				IR_Load <= '0';
 			end if;
 		end if;
 			
-		-- JMP
-		if Instruction = "1010" then
-			if o_CP(5) = '1' then
-				PC_Clear <= '1' AND r_RUN;
-			elsif o_CP(6) = '1' then
-				PC_Clear <= '0' AND r_RUN;
-				PC_Input <= IR_Output(11 DOWNTO 0);
-				PC_Load <= '1' AND r_RUN;
+		if Instruction = "1111" then
+			if o_CP(7) = '1' then
+				MAR_Load <= '1' AND r_RUN;
 			else
-				PC_Load <= '0';
+				MAR_Load <= '0';
 			end if;
 		end if;
+		
+		-- JMP
+--		if Instruction = "1010" then
+--			if o_CP(5) = '1' then
+--				PC_Clear <= '1' AND r_RUN;
+--			elsif o_CP(6) = '1' then
+--				PC_Clear <= '0' AND r_RUN;
+--				PC_Input <= IR_Output(11 DOWNTO 0);
+--				PC_Load <= '1' AND r_RUN;
+--			else
+--				PC_Load <= '0';
+--			end if;
+--		end if;
 		
 		if r_RUN = '1' then
 			dispData <= PC_Output(7 DOWNTO 0);
