@@ -271,47 +271,34 @@ begin
 	-- This will change
 	MAR_Input <= PC_Output;
 	--dispData <= PC_Output(7 DOWNTO 0);
+	PC_Inc <= o_CP(1) AND r_RUN AND NOT(STATE);
+	MBR_Clear <= o_CP(2) AND r_RUN AND NOT(STATE);
+	IR_LOAD <= o_CP(3) AND r_RUN AND NOT(STATE);
+	
 	CU_loop : process(CPU_CLK, i_Button, dispData, r_RUN, o_CP, IR_Output, STATE, Instruction) begin
-		if STATE = '0' then
-			if o_CP(1) = '1' then
-				PC_Inc <= '1' AND r_RUN;
-			elsif o_CP(2) = '1' then
-				PC_Inc <= '0';
-				MBR_Clear <= '1' AND r_RUN;
-			elsif o_CP(3) = '1' then
-				MBR_Clear <= '0';
-				IR_Load <= '1' AND r_RUN;
-			elsif o_CP(4) = '1' then
-				IR_Load <= '0';
-			end if;
-		end if;
-			
+	
 		if Instruction = "1111" then
 			if o_CP(7) = '1' then
-				MAR_Load <= '1' AND r_RUN;
+				MAR_Load <= '1';
 			else
 				MAR_Load <= '0';
 			end if;
 		end if;
 		
 		-- JMP
---		if Instruction = "1010" then
---			if o_CP(5) = '1' then
---				PC_Clear <= '1' AND r_RUN;
---			elsif o_CP(6) = '1' then
---				PC_Clear <= '0' AND r_RUN;
---				PC_Input <= IR_Output(11 DOWNTO 0);
---				PC_Load <= '1' AND r_RUN;
---			else
---				PC_Load <= '0';
---			end if;
---		end if;
-		
-		if r_RUN = '1' then
-			dispData <= PC_Output(7 DOWNTO 0);
-		else
-			dispData <= X"00";
+		if Instruction = "1010" then
+			if o_CP(5) = '1' then
+				PC_Clear <= '1' AND r_RUN;
+			elsif o_CP(6) = '1' then
+				PC_Clear <= '0' AND r_RUN;
+				PC_Input <= IR_Output(11 DOWNTO 0);
+				PC_Load <= '1' AND r_RUN;
+			else
+				PC_Load <= '0';
+			end if;
 		end if;
+		
+		dispData <= PC_Output(7 DOWNTO 0);
 		Instruction <= IR_Output(15 DOWNTO 12);
 	end process;
 end rtl;
