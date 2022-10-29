@@ -42,28 +42,28 @@ ARCHITECTURE behavior OF MemBufferRegisterTest IS
     COMPONENT MemBufferRegister
     PORT(
          i_Clock : IN  std_logic;
-         i_MBRClear : IN  std_logic;
-         i_MBRBus : IN  std_logic_vector(0 to 15);
-         i_MBRReadBus : IN  std_logic_vector(0 to 15);
-         i_MBRTakeIn : IN  std_logic;
-         o_MBRWriteBus : OUT  std_logic_vector(0 to 15);
-         o_MBRBus : OUT  std_logic_vector(0 to 15);
-         o_MBRWEA : OUT STD_LOGIC_VECTOR(0 TO 0)
+         i_MBR_Clear : IN  std_logic;
+         i_MBR_Bus : IN  std_logic_vector(0 to 15);
+         i_MBR_ReadBus : IN  std_logic_vector(0 to 15);
+         i_MBR_Load : IN  std_logic;
+         o_MBR_WriteBus : OUT  std_logic_vector(0 to 15);
+         o_MBR_Bus : OUT  std_logic_vector(0 to 15);
+         o_MBR_WEA : OUT STD_LOGIC_VECTOR(0 TO 0)
         );
     END COMPONENT;
     
 
    --Inputs
    signal i_Clock : std_logic := '0';
-   signal i_MBRClear : std_logic := '0';
-   signal i_MBRBus : std_logic_vector(0 to 15) := (others => '0');
-   signal i_MBRReadBus : std_logic_vector(0 to 15) := (others => '0');
-   signal i_MBRTakeIn : std_logic := '0';
+   signal i_MBR_Clear : std_logic := '0';
+   signal i_MBR_Bus : std_logic_vector(0 to 15) := (others => '0');
+   signal i_MBR_ReadBus : std_logic_vector(0 to 15) := (others => '0');
+   signal i_MBR_Load : std_logic := '0';
 
  	--Outputs
-   signal o_MBRWriteBus : std_logic_vector(0 to 15);
-   signal o_MBRBus : std_logic_vector(0 to 15);
-   signal o_MBRWEA : std_logic_vector(0 to 0);
+   signal o_MBR_WriteBus : std_logic_vector(0 to 15);
+   signal o_MBR_Bus : std_logic_vector(0 to 15);
+   signal o_MBR_WEA : std_logic_vector(0 to 0);
 
    -- Clock period definitions
    constant i_Clock_period : time := 10 ns;
@@ -73,13 +73,13 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
    uut: MemBufferRegister PORT MAP (
           i_Clock => i_Clock,
-          i_MBRClear => i_MBRClear,
-          i_MBRBus => i_MBRBus,
-          i_MBRReadBus => i_MBRReadBus,
-          i_MBRTakeIn => i_MBRTakeIn,
-          o_MBRWriteBus => o_MBRWriteBus,
-          o_MBRBus => o_MBRBus,
-          o_MBRWEA => o_MBRWEA
+          i_MBR_Clear => i_MBR_Clear,
+          i_MBR_Bus => i_MBR_Bus,
+          i_MBR_ReadBus => i_MBR_ReadBus,
+          i_MBR_Load => i_MBR_Load,
+          o_MBR_WriteBus => o_MBR_WriteBus,
+          o_MBR_Bus => o_MBR_Bus,
+          o_MBR_WEA => o_MBR_WEA
         );
 
    -- Clock process definitions
@@ -101,15 +101,15 @@ BEGIN
       wait for i_Clock_period*10;
 
       -- insert stimulus here 
-		i_MBRBus <= X"2301";
+		i_MBR_Bus <= X"2301";
 		wait for 10 ns;
-		i_MBRTakeIn <= '1';
+		i_MBR_Load <= '1';
 		wait for 10 ns;
-		i_MBRTakeIn <= '0';
+		i_MBR_Load <= '0';
 		wait for 10 ns;
-		i_MBRClear <= '1';
+		i_MBR_Clear <= '1';
 		wait for 10 ns;
-		i_MBRClear <= '0';
+		i_MBR_Clear <= '0';
 		wait for 10 ns;
       wait;
    end process;

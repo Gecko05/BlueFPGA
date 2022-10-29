@@ -39,7 +39,8 @@ end clockSystem;
 
 architecture rtl of clockSystem is
 -- Minor cycle freq is 50Mhz, Major cycle is 50/8MHz
-	constant CLK_50MHz : natural := 2;
+	constant CLK_50MHz : natural := 1;
+	---constant CLK_1Hz : natural := 50000000;
 	signal CLK_CNT : natural range 0 to CLK_50MHz;
 	signal CLK_PULSE : STD_LOGIC := '0';
 	signal CLK_PULSE_CNT : natural range 0 to 7;
@@ -48,8 +49,8 @@ begin
 -- Main loop for generating the clock pulse signal
 	clockLoop : process (i_CLK_100MHz) begin
 		if rising_edge(i_CLK_100MHz) then
-			CLK_PULSE <= not CLK_PULSE;
 			if CLK_CNT >= CLK_50MHz - 1 then
+				CLK_PULSE <= not CLK_PULSE;
 				CLK_CNT <= 0;
 				-- Set and clear the individual outputs
 				o_CP <= "00000000";

@@ -32,14 +32,14 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity segDisp is
 	PORT(
 		i_CLK_100MHz : in STD_LOGIC;
-		o_SevenSegment : out STD_LOGIC_VECTOR (0 TO 7) := "00000000";
-		o_SevenSegmentEnable : out STD_LOGIC_VECTOR (2 DOWNTO 0) := "101";
+		o_SevenSegment : out STD_LOGIC_VECTOR (0 TO 7) := "10000000";
+		o_SevenSegmentEnable : out STD_LOGIC_VECTOR (1 DOWNTO 0) := "11";
 		signal i_DATA : STD_LOGIC_VECTOR(7 DOWNTO 0)
 	);
 end segDisp;
 
 architecture Behavioral of segDisp is
-	signal r_Hex : STD_LOGIC_VECTOR(0 TO 7) := "00000000";
+	signal r_Hex : STD_LOGIC_VECTOR(0 TO 7) := "00110001";
 	signal r_Toggle : STD_LOGIC := '0';
 	signal r_DNibble : STD_LOGIC_VECTOR (3 DOWNTO 0) := "0000";
 	constant CLK_120FPS : natural := 416500;
@@ -51,11 +51,11 @@ begin
 				CLK_CNT <= 0;
 				if r_Toggle = '0' then
 					r_DNibble <= i_DATA(3 DOWNTO 0);
-					o_SevenSegmentEnable <= "101";
+					o_SevenSegmentEnable <= "01";
 					r_Toggle <= not(r_Toggle);
-				elsif r_Toggle = '1' then
+				else
 					r_DNibble <= i_DATA(7 DOWNTO 4);
-					o_SevenSegmentEnable <= "110";
+					o_SevenSegmentEnable <= "10";
 					r_Toggle <= not(r_Toggle);
 				end if;
 			else

@@ -32,32 +32,32 @@ use IEEE.NUMERIC_STD.ALL;
 entity MemBufferRegister is
 	port (
 		i_Clock : in STD_LOGIC;
-		i_MBRClear : in STD_LOGIC;
-		i_MBRBus : in STD_LOGIC_VECTOR(15 DOWNTO 0);
-		i_MBRReadBus : in STD_LOGIC_VECTOR(15 DOWNTO 0);
-		i_MBRTakeIn : in STD_LOGIC;
-		o_MBRWriteBus : out STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,16));
-		o_MBRBus : out STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,16));
-		o_MBRWEA : out STD_LOGIC_VECTOR(0 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,1))
+		i_Clear : in STD_LOGIC;
+		i_Bus : in STD_LOGIC_VECTOR(15 DOWNTO 0);
+		i_ReadBus : in STD_LOGIC_VECTOR(15 DOWNTO 0);
+		i_Load : in STD_LOGIC;
+		o_WriteBus : out STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,16));
+		o_Bus : out STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,16));
+		o_WEA : out STD_LOGIC_VECTOR(0 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,1))
 	);
 end MemBufferRegister;
 
 architecture Behavioral of MemBufferRegister is	
-	signal MBRData : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,16));
+	signal Data : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0,16));
 begin
-	MBRLoop : process(i_Clock, i_MBRClear, i_MBRTakeIn) begin
+	MBR : process(i_Clock, i_Clear, i_Load) begin
 		if rising_edge(i_Clock) then
-			if i_MBRClear = '1' then -- Clear the buffer value
-				MBRData <= i_MBRReadBus;
-			elsif i_MBRTakeIn = '1' then -- Take in a value from the bus and write it out to the memory
-				MBRData <= i_MBRBus;
-				o_MBRWEA <= "1";
-				o_MBRWriteBus <= i_MBRBus;
+			if i_Clear = '1' then -- Clear the buffer value
+				Data <= i_ReadBus;
+			elsif i_Load = '1' then -- Take in a value from the bus and write it out to the memory
+				Data <= i_Bus;
+				o_WEA <= "1";
+				o_WriteBus <= i_Bus;
 			else
-				o_MBRWEA <= "0";
+				o_WEA <= "0";
 			end if;
 		end if;
 	end process;
-	o_MBRBus <= MBRData;
+	o_Bus <= Data;
 end Behavioral;
 

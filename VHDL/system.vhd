@@ -32,7 +32,9 @@ use IEEE.NUMERIC_STD.ALL;
 entity system is
 	Port(
 		CLK_100MHz : in STD_LOGIC;
-		i_PB : in STD_LOGIC_VECTOR(0 TO 1);
+		Switch : in STD_LOGIC_VECTOR(0 TO 1);
+		SevenSegment : OUT std_logic_vector(0 to 7);
+		SevenSegmentEnable : OUT std_logic_vector(1 downto 0);
 		o_LED : out STD_LOGIC_VECTOR(0 TO 7)
 	);
 end system;
@@ -50,6 +52,29 @@ architecture rtl of system is
 	signal r_RUN : STD_LOGIC := '0';
 	signal o_CP : STD_LOGIC_VECTOR(0 TO 7);
 	signal CPU_CLK : STD_LOGIC;
+	
+-- Seven Segment Display
+	COMPONENT segDisp
+	PORT(
+		i_CLK_100MHz : IN std_logic;
+		i_DATA : IN std_logic_vector(7 downto 0);          
+		o_SevenSegment : OUT std_logic_vector(0 to 7);
+		o_SevenSegmentEnable : OUT std_logic_vector(1 downto 0)
+		);
+	END COMPONENT;
+	
+	signal dispData : std_logic_vector(7 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 8));
+	
+-- Debounce Switch
+	COMPONENT Debounce_Switch
+	PORT(
+		i_Clk : IN std_logic;
+		i_Switch : IN std_logic;          
+		o_Switch : OUT std_logic
+		);
+	END COMPONENT;
+	
+	signal i_Switch : std_logic_vector(1 downto 0) := STD_LOGIC_VECTOR(to_unsigned(0, 2));
 	
 -- Instruction Register component
 	COMPONENT InstructionRegister
@@ -146,9 +171,9 @@ architecture rtl of system is
 		);
 	END COMPONENT;
 	
-	signal i_ACCClear : STD_LOGIC;
+	signal i_ACCClear : STD_LOGIC := '0';
 	signal i_ACCBus : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
-	signal i_ACCTakeIn : STD_LOGIC;
+	signal i_ACCTakeIn : STD_LOGIC := '0';
 	signal o_ACCBus : STD_LOGIC_VECTOR(15 DOWNTO 0);
 	
 	-- Z Register component
@@ -190,9 +215,9 @@ architecture rtl of system is
 	signal Instruction : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
 	signal STATE : STD_LOGIC := '0'; -- 0 is Fetch, 1 is Execute
 	-- Buttons
-	signal w_START : STD_LOGIC;
-	signal w_STOP : STD_LOGIC;
-	signal r_NEW_CYCLE : STD_LOGIC; -- Used as a lock to avoid going into CP(7) more than once
+	signal w_STOP : STD_LOGIC := '0';
+	signal w_START : STD_LOGIC := '1';
+	signal r_NEW_CYCLE : STD_LOGIC := '0'; -- Used as a lock to avoid going into CP(7) more than once
 begin
 	-- Clock and power
 	CLK_Sys: clockSystem PORT MAP(
@@ -202,6 +227,25 @@ begin
 	);
 	o_LED <= o_CP;
 
+	-- Seven Segment Display
+	Inst_segDisp: segDisp PORT MAP(
+		i_CLK_100MHz => CLK_100MHz,
+		o_SevenSegment => SevenSegment,
+		o_SevenSegmentEnable => SevenSegmentEnable,
+		i_DATA => dispData
+	);
+	-- Debounce switches
+	Debounce_Switch0: Debounce_Switch PORT MAP(
+		i_Clk => CLK_100MHz,
+		i_Switch => Switch(0),
+		o_Switch => i_Switch(0)
+	);
+	
+	Debounce_Switch1: Debounce_Switch PORT MAP(
+		i_Clk => CLK_100MHz,
+		i_Switch => Switch(1),
+		o_Switch => i_Switch(1)
+	);
 	-- Instruction register
 	IR: InstructionRegister PORT MAP(
 		i_Clock => CPU_CLK,
@@ -284,10 +328,12 @@ begin
 	--i_PCBus <= o_IRBus(0 TO 11);
 	o_LED <= o_CP;
 	-- Start and stop buttonns
-	w_START <= not(i_PB(0));
-	w_STOP <= not(i_PB(1));
-	
-	controlLoop : process (o_CP, CPU_CLK, o_IRBus, Instruction, w_START, w_STOP, r_NEW_CYCLE) begin
+	w_START <= not(i_Switch(0));
+	w_STOP <= not(i_Switch(1));
+	dispData <= o_ACCBus(7 downto 0);
+	controlLoop : process (CLK_100MHz, o_CP, CPU_CLK, o_IRBus, Instruction, r_NEW_CYCLE, r_RUN, o_ACCBus,
+									STATE, o_PCBus, o_MBRBus, o_ZBus, o_ALU, i_Switch) begin
+	if rising_edge(CLK_100MHz) then
 		if r_RUN = '1' then
 			-- Control Unit
 			-- Shared Clock routines for all instructions
@@ -461,17 +507,17 @@ begin
 				end if;
 			end if;
 			-- STOP Button
-			if w_STOP = '1' then
+			if w_START = '0' and w_STOP = '1' then
 				r_RUN  <= '0';
 			end if;
 			
 		-- START/RESUME
 		elsif r_RUN = '0' then
-			if w_START = '1' and o_CP(7) = '1' then
+			if w_START = '1' and w_STOP = '0' and o_CP(7) = '1' then
 				r_RUN <= '1';
-				--i_PCClear <= '1'; --Enable this to start PC from zero
 			end if;
 		end if;
+	end if;
 	end process;
 	Instruction <= o_IRBus(15 DOWNTO 12);
 end rtl;

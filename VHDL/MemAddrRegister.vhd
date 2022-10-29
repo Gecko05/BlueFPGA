@@ -32,21 +32,21 @@ use IEEE.NUMERIC_STD.ALL;
 entity MemAddrRegister is
 	port(
 		i_Clock : in STD_LOGIC;
-		i_MARBus : in STD_LOGIC_VECTOR(11 DOWNTO 0);
-		i_MARTakeIn : in STD_LOGIC;
-		o_MARBus : out STD_LOGIC_VECTOR(11 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 12))
+		i_Bus : in STD_LOGIC_VECTOR(11 DOWNTO 0);
+		i_Load : in STD_LOGIC;
+		o_Bus : out STD_LOGIC_VECTOR(11 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 12))
 	);
 end MemAddrRegister;
 
 architecture rtl of MemAddrRegister is
-	signal MARData : STD_LOGIC_VECTOR(11 DOWNTO 0) := std_logic_vector(to_unsigned(0, 12));
+	signal Data : STD_LOGIC_VECTOR(11 DOWNTO 0) := std_logic_vector(to_unsigned(0, 12));
 begin
-	IRLoop : process(i_Clock, i_MARTakeIn) begin
-		if rising_edge(i_MARTakeIn) then
-			MARData <= i_MARBus;
+	MAR : process(i_Clock, i_Load) begin
+		if rising_edge(i_Load) then
+			Data <= i_Bus;
 		else
 		end if;
 	end process;
-	o_MARBus <= MARData;
+	o_Bus <= Data;
 end rtl;
 
