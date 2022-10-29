@@ -17,11 +17,12 @@ typedef enum {
 	FETCH,
 } State;
 
+State STATE = FETCH;
+
 bool debugMode = true;
 bool printRegistersEveryCycle = debugMode;
 bool manualInputMode = true;
 
-State STATE = FETCH;
 bool power = false;
 bool TRA = false;
 bool R = false; // READY for device communication
@@ -453,11 +454,6 @@ void process_tick(uint8_t tick)
 	(*instruction_callback[INS])(tick);
 }
 
-void tick_clock()
-{
-	clock_pulse++;
-}
-
 void handleIO()
 {
 	if (INP == get_instruction()) {
@@ -501,7 +497,7 @@ void emulateCycle()
 	while (clock_pulse < 8)
 	{
 		process_tick(clock_pulse);
-		tick_clock();
+		clock_pulse++;
 	}
 	clock_pulse = 0;
 }
