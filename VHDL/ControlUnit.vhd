@@ -274,29 +274,46 @@ begin
 	PC_Inc <= o_CP(1) AND r_RUN AND NOT(STATE);
 	MBR_Clear <= o_CP(2) AND r_RUN AND NOT(STATE);
 	IR_LOAD <= o_CP(3) AND r_RUN AND NOT(STATE);
+	--MAR_Load <= o_CP(7) AND Instruction(0) AND Instruction(1) AND Instruction(2) AND Instruction(3);
+	-- Initialization
+	MBR_Load <= '0';
+	MBR_Input <= std_logic_vector(to_unsigned(0, 16));
+	--PC_Input <= std_logic_vector(to_unsigned(0, 12));
+	IR_Clear <= '0';
+	STATE <= '0';
 	
-	CU_loop : process(CPU_CLK, i_Button, dispData, r_RUN, o_CP, IR_Output, STATE, Instruction) begin
-	
-		if Instruction = "1111" then
-			if o_CP(7) = '1' then
+	CU_loop : process(CPU_CLK, i_Button, dispData, r_RUN, o_CP, IR_Output, STATE, Instruction, PC_Output) begin
+		PC_Load <= '0';
+		PC_Clear <= '0';
+		MAR_Load <= '0';
+		PC_Input <= std_logic_vector(to_unsigned(0, 12));
+		if o_CP(5) = '1' then
+			if Instruction = "1010" then
+				PC_Clear <= '1';
+			end if;
+		elsif o_CP(6) = '1' then
+			if Instruction = "1010" then
+				PC_Input <= IR_Output(11 DOWNTO 0);
+				PC_Load <= '1';
+			end if;
+		elsif o_CP(7) = '1' then
+			if Instruction = "1111" then
 				MAR_Load <= '1';
-			else
-				MAR_Load <= '0';
 			end if;
 		end if;
 		
 		-- JMP
-		if Instruction = "1010" then
-			if o_CP(5) = '1' then
-				PC_Clear <= '1' AND r_RUN;
-			elsif o_CP(6) = '1' then
-				PC_Clear <= '0' AND r_RUN;
-				PC_Input <= IR_Output(11 DOWNTO 0);
-				PC_Load <= '1' AND r_RUN;
-			else
-				PC_Load <= '0';
-			end if;
-		end if;
+--		if Instruction = "1010" then
+--			if o_CP(5) = '1' then
+--				PC_Clear <= '1' AND r_RUN;
+--			elsif o_CP(6) = '1' then
+--				PC_Clear <= '0' AND r_RUN;
+--				PC_Input <= IR_Output(11 DOWNTO 0);
+--				PC_Load <= '1' AND r_RUN;
+--			else
+--				PC_Load <= '0';
+--			end if;
+--		end if;
 		
 		dispData <= PC_Output(7 DOWNTO 0);
 		Instruction <= IR_Output(15 DOWNTO 12);
