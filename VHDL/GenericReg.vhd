@@ -43,7 +43,7 @@ begin
 	begin
 		if Clear = '1' then
 			Q <= (OTHERS => '0');
-		elsif Clock'EVENT AND Clock = '1' then
+		elsif rising_edge(Clock) then
 			if Load = '1' then
 				Q <= D;
 			end if;
