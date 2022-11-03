@@ -42,8 +42,10 @@ architecture rtl of MemAddrRegister is
 	signal Data : STD_LOGIC_VECTOR(11 DOWNTO 0) := std_logic_vector(to_unsigned(0, 12));
 begin
 	MAR : process(i_Clock, i_Load) begin
-		if rising_edge(i_Load) then
-			Data <= i_Bus;
+		if rising_edge(i_Clock) then
+			if i_Load = '1' then
+				Data <= i_Bus;
+			end if;
 		else
 		end if;
 	end process;
