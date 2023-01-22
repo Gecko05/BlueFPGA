@@ -139,6 +139,23 @@ architecture rtl of ControlUnit is
 	signal PC_Clear : STD_LOGIC := '0';
 	signal PC_Load : STD_LOGIC := '0';
 	signal PC_Output : STD_LOGIC_VECTOR(11 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 12));
+	
+-- ALU
+	COMPONENT ArithmeticLogicUnit
+	PORT(
+		S : IN std_logic_vector(2 downto 0);
+		A : IN std_logic_vector(15 downto 0);
+		B : IN std_logic_vector(15 downto 0);          
+		OVR : OUT std_logic;
+		F : OUT std_logic_vector(15 downto 0)
+		);
+	END COMPONENT;
+	
+	signal ALU_OP : STD_LOGIC_VECTOR(2 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 3));
+	signal ALU_InputA : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal ALU_InputB :STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal ALU_Overflow : STD_LOGIC := '0';
+	signal ALU_Output : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 
 -- Instruction Register
 	COMPONENT GenericReg
@@ -155,13 +172,28 @@ architecture rtl of ControlUnit is
 	signal IR_Clear : STD_LOGIC := '0';
 	signal IR_Output : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal IR_Load : STD_LOGIC := '0';
+	
+	signal ACC_Input : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal ACC_Clear : STD_LOGIC := '0';
+	signal ACC_Output : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal ACC_Load : STD_LOGIC := '0';
+	
+	signal Z_Input : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal Z_Clear : STD_LOGIC := '0';
+	signal Z_Output : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
+	signal Z_Load : STD_LOGIC := '0';
+	
 -- State
 	signal STATE : STD_LOGIC := '0'; -- Two States, 0 Fetch, 1 Execute
 	signal Instruction : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
 	type FSM is (FETCH_1, FETCH_2, FETCH_3, FETCH_4, FETCH_5, FETCH_6, FETCH_7, FETCH_8, 
 					 NOP_8,
 					 HLT_1, HLT_7,
-					 JMP_6, JMP_7, JMP_8);
+					 JMP_6, JMP_7, JMP_8,
+					 JMA_6, JMA_7, JMA_8,
+					 -- Double Cycle Instructions
+					 ADD_6, ADD_7, ADD_8, ADD_9, ADD_10, ADD_11, ADD_12, ADD_13, ADD_14, ADD_15, ADD_16
+					 );
 	signal next_state: FSM := FETCH_2;
 	signal current_state: FSM := FETCH_1;
 begin
@@ -211,6 +243,15 @@ begin
 		o_WEA => MBR_WEA
 	);
 	
+-- Arithmetic Logic Unit
+	Inst_ArithmeticLogicUnit: ArithmeticLogicUnit PORT MAP(
+		S => ALU_OP,
+		A => ALU_InputA,
+		B => ALU_InputB,
+		OVR => ALU_Overflow,
+		F => ALU_Output
+	);
+	
 -- Instruction Register
 	Inst_GenericReg: GenericReg PORT MAP(
 		Clock => CPU_CLK,
@@ -218,6 +259,24 @@ begin
 		Load => IR_Load,
 		D => IR_Input,
 		Q => IR_Output
+	);
+	
+-- Accumulator Register
+	Acc_GenericReg: GenericReg PORT MAP(
+		Clock => CPU_CLK,
+		Clear => ACC_Clear,
+		Load => ACC_Load,
+		D => ACC_Input,
+		Q => ACC_Output
+	);
+	
+-- Z Register
+	Z_GenericReg: GenericReg PORT MAP(
+		Clock => CPU_CLK,
+		Clear => Z_Clear,
+		Load => Z_Load,
+		D => Z_Input,
+		Q => Z_Output
 	);
 	
 -- RAM Block
@@ -247,8 +306,12 @@ begin
 	IR_Input <= MBR_Output;
 	
 -- This will change
-	MAR_Input <= PC_Output;
+	--MAR_Input <= PC_Output;
+	ALU_OP <= "001";
 
+	ALU_InputA <= ACC_Output;
+	ALU_InputB <= Z_Output;
+	
 -- Initialization
 	MBR_Input <= std_logic_vector(to_unsigned(0, 16));
 
@@ -258,7 +321,7 @@ begin
 		end if;
 	end process;
 	
-	CU_loop : process(CPU_CLK, dispData, IR_Output, Instruction, PC_Output, i_Button, current_state) begin
+	CU_loop : process(CPU_CLK, dispData, IR_Output, Instruction, PC_Output, ACC_Output, i_Button, current_state) begin
 		PC_Load <= '0';
 		PC_Clear <= '0';
 		MAR_Load <= '0';
@@ -266,10 +329,16 @@ begin
 		PC_Inc <= '0';
 		MBR_Clear <= '0';
 		IR_Clear <= '0';
-		IR_Load <= '1';
+		IR_Load <= '0';
+		ACC_Clear <= '0';
+		ACC_Load <= '0';
+		Z_Clear <= '0';
+		Z_Load <= '0';
+		ACC_Input <= MBR_Output;
+		MAR_Input <= PC_Output;
 		PC_Input <= std_logic_vector(to_unsigned(0, 12));
 		case current_state is
------  FETCH  -------------------------
+----  FETCH  -------------------------
 			when FETCH_1 =>
 				--if i_Button(1) = '1' then
 					--next_state <= HLT_1;
@@ -289,6 +358,10 @@ begin
 			when FETCH_5 =>
 				if Instruction = "1010" then
 					next_state <= JMP_6;
+				elsif Instruction = "1001" then
+					next_state <= JMA_6;
+				elsif Instruction = "0001" then
+					next_state <= ADD_6;
 				else
 					next_state <= FETCH_6;
 				end if;
@@ -306,11 +379,11 @@ begin
 				end if;
 			when FETCH_8 =>
 				next_state <= FETCH_1;
------  NOP  ---------------------------
+----  NOP  ---------------------------
 			when NOP_8 =>
 				MAR_Load <= '1';
 				next_state <= FETCH_1;
------  HLT  ---------------------------
+----  HLT  ---------------------------
 			when HLT_1 =>
 				if i_Button(0) = '1' then
 					next_state <= FETCH_1;
@@ -320,7 +393,7 @@ begin
 			when HLT_7 =>
 				MAR_Load <= '1';
 				next_state <= HLT_1;
------  JMP  ---------------------------
+----  JMP  ---------------------------
 			when JMP_6 =>
 				PC_Clear <= '1';
 				next_state <= JMP_7;
@@ -331,6 +404,60 @@ begin
 			when JMP_8 =>
 				MAR_Load <= '1';
 				next_state <= FETCH_1;
+----  JMA  ---------------------------
+			when JMA_6 =>
+				if ACC_Output(14) = '1' then
+					PC_Clear <= '1';
+				end if;
+				next_state <= JMA_7;
+			when JMA_7 =>
+				if ACC_Output(14) = '1' then
+					PC_Input <= IR_Output(11 DOWNTO 0);
+					PC_Load <= '1';
+				end if;				
+				next_state <= JMA_8;
+			when JMA_8 =>
+				MAR_Load <= '1';
+				next_state <= FETCH_1;
+----  ADD  --------------------------
+			when ADD_6 =>
+				Z_Clear <= '1';
+				next_state <= ADD_7;
+			when ADD_7 =>
+				Z_Input <= ACC_Output;
+				Z_Load <= '1';
+				next_state <= ADD_8;
+			when ADD_8 =>
+				MAR_Input <= IR_Output(11 DOWNTO 0);
+				MAR_Load <= '1';
+				next_state <= ADD_9;
+			when ADD_9 =>
+				next_state <= ADD_10;
+			when ADD_10 =>
+				next_state <= ADD_11;
+			when ADD_11 =>
+				next_state <= ADD_12;
+			when ADD_12 =>
+				ACC_Input <= MBR_Output;
+				ACC_Load <= '1';
+				next_state <= ADD_13;
+			when ADD_13 =>
+				next_state <= ADD_14;
+			when ADD_14 =>
+				ALU_OP <= "001";
+				next_state <= ADD_15;
+			when ADD_15 =>
+				ACC_Input <= ALU_Output;
+				ACC_Load <= '1';
+				if ALU_Overflow = '1' then
+					next_state <= HLT_7;
+				else
+					next_state <= ADD_16;
+				end if;
+			when ADD_16 =>
+				MAR_Load <= '1';
+				next_state <= FETCH_1;
+-------------------------------------
 			when others =>
 				next_state <= FETCH_1;
 		end case;

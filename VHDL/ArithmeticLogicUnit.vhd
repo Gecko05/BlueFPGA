@@ -32,7 +32,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity ArithmeticLogicUnit is
 	PORT(
-		S : in STD_LOGIC_VECTOR (3 DOWNTO 0);
+		S : in STD_LOGIC_VECTOR (2 DOWNTO 0);
 		A, B : in STD_LOGIC_VECTOR(15 DOWNTO 0);
 		OVR : out STD_LOGIC;
 		F : out STD_LOGIC_VECTOR(15 DOWNTO 0)
@@ -43,22 +43,22 @@ architecture Behavioral of ArithmeticLogicUnit is
 	signal R : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 begin
 	F <= R;
-	process (A, B, S)
+	process (A, B, S, R)
 	begin
 		case S is 
-		when "0001" => -- ADD
+		when "001" => -- ADD
 			R <= A + B;
 			OVR <= (A(15) AND B(15) AND (NOT(R(15)))) OR ((NOT(A(15))) AND (NOT(B(15))) AND R(15));
-		when "0010" => -- XOR
+		when "010" => -- XOR
 			R <= A XOR B;
 			OVR <= '0';
-		when "0011" => -- AND
+		when "011" => -- AND
 			R <= A AND B;
 			OVR <= '0';
-		when "0100" => -- IOR
+		when "100" => -- IOR
 			R <= A OR B;
 			OVR <= '0';
-		when "0101" => -- NOT
+		when "101" => -- NOT
 			R <= NOT(A);
 			OVR <= '0';
 		when others => -- RAL
