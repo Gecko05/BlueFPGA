@@ -32,28 +32,26 @@ use IEEE.NUMERIC_STD.ALL;
 entity ControlUnit is
 	Port(
 		CLK_100MHz : in std_logic;
-		--Switch : in std_logic_vector(0 TO 1);
-		o_LED : out std_logic_vector(0 TO 7);
+		Switch : in std_logic_vector(0 TO 0);
+		o_LED : out std_logic_vector(0 TO 0);
 		SevenSegment : out std_logic_vector(0 TO 7);
 		SevenSegmentEnable : out std_logic_vector(0 TO 1)
-		--IO_P6 : inout std_logic_vector(0 TO 0)
 	);
 end ControlUnit;
 
 architecture rtl of ControlUnit is
+
 -- Clock and power component
 	COMPONENT clockSystem
 	PORT(
 		i_CLK_100MHz : IN std_logic;		
-		o_CP : OUT std_logic_vector(0 to 7);
 		o_CLK : OUT std_logic
 		);
 	END COMPONENT;
 	
-	signal o_CP : std_logic_vector(0 TO 7) := std_logic_vector(to_unsigned(0,8));
 	signal CPU_CLK : std_logic := '0';
 	
-	-- Seven Segment Display
+-- Seven Segment Display
 	COMPONENT segDisp
 	PORT(
 		i_CLK_100MHz : IN std_logic;
@@ -65,33 +63,19 @@ architecture rtl of ControlUnit is
 	
 	signal dispData : std_logic_vector(7 downto 0) := std_logic_vector(to_unsigned(0, 8));
 	
-	-- Debounce Switch
---	COMPONENT Debounce_Switch
---	PORT(
---		i_Clk : IN std_logic;
---		i_Switch : IN std_logic;          
---		o_Switch : OUT std_logic
---		);
---	END COMPONENT;
---	
---	signal i_Button : std_logic_vector (1 DOWNTO 0) := std_logic_vector(to_unsigned(0, 2));
---	signal o_Switch : std_logic_vector (1 DOWNTO 0) := std_logic_vector(to_unsigned(0, 2));
---	
---	-- Power Management
---	COMPONENT Power
---	PORT(
---		i_CLK_100MHz : IN std_logic;
---		i_START : IN std_logic;
---		i_STOP : IN std_logic;
---		i_HALT : IN std_logic;          
---		o_RUN : OUT std_logic
---		);
---	END COMPONENT;
---	
---	signal r_RUN : std_logic := '0';
---	signal r_HALT : std_logic := '0';
+-- Debounce Switch
+	COMPONENT Debounce_Switch
+	PORT(
+		i_Clk : IN std_logic;
+		i_Switch : IN std_logic;          
+		o_Switch : OUT std_logic
+		);
+	END COMPONENT;
 	
-	-- Memory Address Register
+	signal i_Button : std_logic_vector (0 DOWNTO 0) := std_logic_vector(to_unsigned(0, 1));
+	signal o_Switch : std_logic_vector (0 DOWNTO 0) := std_logic_vector(to_unsigned(0, 1));
+	
+-- Memory Address Register
 	COMPONENT MemAddrRegister
 	PORT(
 		i_Clock : IN std_logic;
@@ -105,7 +89,7 @@ architecture rtl of ControlUnit is
 	signal MAR_Load : std_logic := '0';
 	signal MAR_Output : std_logic_vector(11 downto 0) := std_logic_vector(to_unsigned(0, 12));
 	
-	-- Memory Buffer Register
+-- Memory Buffer Register
 	COMPONENT MemBufferRegister
 	PORT(
 		i_Clock : IN std_logic;
@@ -127,7 +111,7 @@ architecture rtl of ControlUnit is
 	signal MBR_Output : std_logic_vector(15 downto 0) := std_logic_vector(to_unsigned(0, 16));
 	signal MBR_WEA : std_logic_vector(0 to 0) := std_logic_vector(to_unsigned(0, 1));
 	
-	-- RAM Block
+-- RAM Block
 	COMPONENT RAM_Block
 	  PORT (
 		 clka : IN STD_LOGIC;
@@ -138,7 +122,7 @@ architecture rtl of ControlUnit is
 	  );
 	END COMPONENT;
 	
-	-- Program Counter
+-- Program Counter
 	COMPONENT programCounter
 	PORT(
 		i_Clock : IN std_logic;
@@ -155,8 +139,8 @@ architecture rtl of ControlUnit is
 	signal PC_Clear : STD_LOGIC := '0';
 	signal PC_Load : STD_LOGIC := '0';
 	signal PC_Output : STD_LOGIC_VECTOR(11 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 12));
-	
-	-- Instruction Register
+
+-- Instruction Register
 	COMPONENT GenericReg
 	PORT(
 		Clock : IN std_logic;
@@ -171,23 +155,23 @@ architecture rtl of ControlUnit is
 	signal IR_Clear : STD_LOGIC := '0';
 	signal IR_Output : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal IR_Load : STD_LOGIC := '0';
-	-- State
+-- State
 	signal STATE : STD_LOGIC := '0'; -- Two States, 0 Fetch, 1 Execute
 	signal Instruction : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
 	type FSM is (FETCH_1, FETCH_2, FETCH_3, FETCH_4, FETCH_5, FETCH_6, FETCH_7, FETCH_8, 
 					 NOP_8,
+					 HLT_1, HLT_7,
 					 JMP_6, JMP_7, JMP_8);
 	signal next_state: FSM := FETCH_2;
 	signal current_state: FSM := FETCH_1;
 begin
-	-- Clock
+-- Clock
 	CLK_Sys: clockSystem PORT MAP(
 		i_CLK_100MHz => CLK_100MHz,
-		o_CP => o_CP,
 		o_CLK => CPU_CLK
 	);
 	
-	-- Seven Segment Display
+-- Seven Segment Display
 	Inst_segDisp: segDisp PORT MAP(
 		i_CLK_100MHz => CLK_100MHz,
 		o_SevenSegment => SevenSegment,
@@ -195,28 +179,19 @@ begin
 		i_DATA => dispData
 	);
 	
-	-- Debounce Switches
---	Inst_Debounce_Switch0: Debounce_Switch PORT MAP(
---		i_Clk => CLK_100MHz,
---		i_Switch => Switch(0),
---		o_Switch => o_Switch(0)
---	);
---	
+-- Debounce Switches
+	Inst_Debounce_Switch0: Debounce_Switch PORT MAP(
+		i_Clk => CLK_100MHz,
+		i_Switch => Switch(0),
+		o_Switch => o_Switch(0)
+	);
 --	Inst_Debounce_Switch1: Debounce_Switch PORT MAP(
 --		i_Clk => CLK_100MHz,
 --		i_Switch => Switch(1),
 --		o_Switch => o_Switch(1)
 --	);
---	
---	Inst_Power: Power PORT MAP(
---		i_CLK_100MHz => CLK_100MHz,
---		i_START => i_Button(0),
---		i_STOP => i_Button(1),
---		i_HALT => r_HALT,
---		o_RUN => r_RUN
---	);
 	
-	-- Memory Address Register
+-- Memory Address Register
 	Inst_MemAddrRegister: MemAddrRegister PORT MAP(
 		i_Clock => CPU_CLK,
 		i_Bus => MAR_Input,
@@ -224,7 +199,7 @@ begin
 		o_Bus => MAR_Output
 	);
 	
-	-- Memory Buffer Register
+-- Memory Buffer Register
 	Inst_MemBufferRegister: MemBufferRegister PORT MAP(
 		i_Clock => CPU_CLK,
 		i_Clear => MBR_Clear,
@@ -236,7 +211,7 @@ begin
 		o_WEA => MBR_WEA
 	);
 	
-	-- Instruction Register
+-- Instruction Register
 	Inst_GenericReg: GenericReg PORT MAP(
 		Clock => CPU_CLK,
 		Clear => IR_Clear,
@@ -245,7 +220,7 @@ begin
 		Q => IR_Output
 	);
 	
-	-- RAM Block
+-- RAM Block
 	RAM : RAM_Block PORT MAP (
 		 clka => CPU_CLK,
 		 wea => MBR_WEA,
@@ -254,7 +229,7 @@ begin
 		 douta => MBR_ReadBus
 	);
 	
-	-- Program Counter
+-- Program Counter
 	Inst_programCounter: programCounter PORT MAP(
 		i_Clock => CPU_CLK,
 		i_PCBus => PC_Input,
@@ -264,35 +239,26 @@ begin
 		i_PCLoad => PC_Load
 	);
 	
-	-- Board	
-	o_LED <= o_CP;
---	IO_P6(0) <= CPU_CLK;
---	i_Button <= NOT(o_Switch);
---	
---	r_HALT <= '0';
-	-- Permanent connections
+-- Board	
+	o_LED(0) <= CPU_CLK;
+	i_Button <= NOT(o_Switch);
+	
+-- Permanent connections
 	IR_Input <= MBR_Output;
 	
-	-- This will change
+-- This will change
 	MAR_Input <= PC_Output;
-	--dispData <= PC_Output(7 DOWNTO 0);
---	PC_Inc <= o_CP(1) AND r_RUN AND NOT(STATE);
---	MBR_Clear <= o_CP(2) AND r_RUN AND NOT(STATE);
---	IR_LOAD <= o_CP(3) AND r_RUN AND NOT(STATE);
-	--MAR_Load <= o_CP(7) AND Instruction(0) AND Instruction(1) AND Instruction(2) AND Instruction(3);
-	-- Initialization
+
+-- Initialization
 	MBR_Input <= std_logic_vector(to_unsigned(0, 16));
-	--PC_Input <= std_logic_vector(to_unsigned(0, 12));
-	--IR_Clear <= '0';
---	type example_fsm_t is (idle, starting, running, stopping);
---	
+
 	process (CPU_CLK, next_state) begin
 		if rising_edge(CPU_CLK) then
 			current_state <= next_state;
 		end if;
 	end process;
 	
-	CU_loop : process(CPU_CLK, dispData, IR_Output, Instruction, PC_Output, current_state) begin
+	CU_loop : process(CPU_CLK, dispData, IR_Output, Instruction, PC_Output, i_Button, current_state) begin
 		PC_Load <= '0';
 		PC_Clear <= '0';
 		MAR_Load <= '0';
@@ -301,11 +267,15 @@ begin
 		MBR_Clear <= '0';
 		IR_Clear <= '0';
 		IR_Load <= '1';
---		IR_Input <= std_logic_vector(to_unsigned(0, 16));
 		PC_Input <= std_logic_vector(to_unsigned(0, 12));
 		case current_state is
+-----  FETCH  -------------------------
 			when FETCH_1 =>
-				next_state <= FETCH_2;
+				--if i_Button(1) = '1' then
+					--next_state <= HLT_1;
+				--else
+					next_state <= FETCH_2;
+				--end if;
 			when FETCH_2 =>
 				PC_Inc <= '1';
 				next_state <= FETCH_3;
@@ -317,14 +287,17 @@ begin
 				IR_Load <= '1';
 				next_state <= FETCH_5;
 			when FETCH_5 =>
---				IR_Input <= MBR_Output;
 				if Instruction = "1010" then
 					next_state <= JMP_6;
 				else
 					next_state <= FETCH_6;
 				end if;
 			when FETCH_6 =>
-				next_state <= FETCH_7;
+				if Instruction = "0000" then
+					next_state <= HLT_7;
+				else
+					next_state <= FETCH_7;
+				end if;
 			when FETCH_7 =>
 				if Instruction = "1111" then
 					next_state <= NOP_8;
@@ -333,9 +306,21 @@ begin
 				end if;
 			when FETCH_8 =>
 				next_state <= FETCH_1;
+-----  NOP  ---------------------------
 			when NOP_8 =>
 				MAR_Load <= '1';
 				next_state <= FETCH_1;
+-----  HLT  ---------------------------
+			when HLT_1 =>
+				if i_Button(0) = '1' then
+					next_state <= FETCH_1;
+				else
+					next_state <= HLT_1;
+				end if;
+			when HLT_7 =>
+				MAR_Load <= '1';
+				next_state <= HLT_1;
+-----  JMP  ---------------------------
 			when JMP_6 =>
 				PC_Clear <= '1';
 				next_state <= JMP_7;
@@ -349,34 +334,6 @@ begin
 			when others =>
 				next_state <= FETCH_1;
 		end case;
-		
---		if o_CP(5) = '1' then
---			if Instruction = "1010" then
---				PC_Clear <= '1';
---			end if;
---		elsif o_CP(6) = '1' then
---			if Instruction = "1010" then
---				PC_Input <= IR_Output(11 DOWNTO 0);
---				PC_Load <= '1';
---			end if;
---		elsif o_CP(7) = '1' then
---			if Instruction = "1111" then
---				MAR_Load <= '1';
---			end if;			
---		end if;
-		
-		-- JMP
---		if Instruction = "1010" then
---			if o_CP(5) = '1' then
---				PC_Clear <= '1' AND r_RUN;
---			elsif o_CP(6) = '1' then
---				PC_Clear <= '0' AND r_RUN;
---				PC_Input <= IR_Output(11 DOWNTO 0);
---				PC_Load <= '1' AND r_RUN;
---			else
---				PC_Load <= '0';
---			end if;
---		end if;
 		
 		dispData <= PC_Output(7 DOWNTO 0);
 		Instruction <= IR_Output(15 DOWNTO 12);

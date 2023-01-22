@@ -42,8 +42,8 @@ ARCHITECTURE behavior OF ControlUnitTest IS
     COMPONENT ControlUnit
     PORT(
          CLK_100MHz : IN  std_logic;
---         Switch : IN  std_logic_vector(0 to 1);
-         o_LED : OUT  std_logic_vector(0 to 7);
+         Switch : IN  std_logic_vector(0 to 0);
+         o_LED : OUT  std_logic_vector(0 to 0);
          SevenSegment : OUT  std_logic_vector(0 to 7);
          SevenSegmentEnable : OUT  std_logic_vector(0 to 1)
 --         IO_P6 : INOUT  std_logic_vector(0 downto 0)
@@ -53,13 +53,13 @@ ARCHITECTURE behavior OF ControlUnitTest IS
 
    --Inputs
    signal CLK_100MHz : std_logic := '0';
---   signal Switch : std_logic_vector(0 to 1) := (others => '0');
+   signal Switch : std_logic_vector(0 to 0) := (others => '0');
 
 	--BiDirs
 --   signal IO_P6 : std_logic_vector(0 downto 0);
 
  	--Outputs
-   signal o_LED : std_logic_vector(0 to 7);
+   signal o_LED : std_logic_vector(0 to 0);
    signal SevenSegment : std_logic_vector(0 to 7);
    signal SevenSegmentEnable : std_logic_vector(0 to 1);
 
@@ -71,7 +71,7 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
    uut: ControlUnit PORT MAP (
           CLK_100MHz => CLK_100MHz,
---          Switch => Switch,
+          Switch => Switch,
           o_LED => o_LED,
           SevenSegment => SevenSegment,
           SevenSegmentEnable => SevenSegmentEnable
@@ -93,20 +93,20 @@ BEGIN
    begin		
       -- hold reset state for 100 ns.
       wait for 100 ns;	
-
+		
       wait for CLK_100MHz_period*10;
 
       -- insert stimulus here 
-		--Switch(0) <= '1';
+		Switch(0) <= '1';
 		--Switch(1) <= '1';
 		wait for CLK_100MHz_period*10;
-		--Switch(0) <= '0';
+		Switch(0) <= '0';
 		--Switch(1) <= '0';
-		wait for CLK_100MHz_period*10;
-		--Switch(0) <= '1';
+		wait for CLK_100MHz_period*30;
+		Switch(0) <= '1';
 		--Switch(1) <= '0';
-		wait for CLK_100MHz_period*10;
-		--Switch(0) <= '0';
+		wait for CLK_100MHz_period*40;
+		Switch(0) <= '0';
 		--Switch(1) <= '1';
 		wait for CLK_100MHz_period*10;
       wait;
