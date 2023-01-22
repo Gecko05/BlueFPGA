@@ -143,7 +143,7 @@ architecture rtl of ControlUnit is
 -- ALU
 	COMPONENT ArithmeticLogicUnit
 	PORT(
-		S : IN std_logic_vector(2 downto 0);
+		S : IN std_logic_vector(3 downto 0);
 		A : IN std_logic_vector(15 downto 0);
 		B : IN std_logic_vector(15 downto 0);          
 		OVR : OUT std_logic;
@@ -151,7 +151,7 @@ architecture rtl of ControlUnit is
 		);
 	END COMPONENT;
 	
-	signal ALU_OP : STD_LOGIC_VECTOR(2 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 3));
+	signal ALU_OP : STD_LOGIC_VECTOR(3 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(1, 4));
 	signal ALU_InputA : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal ALU_InputB :STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal ALU_Overflow : STD_LOGIC := '0';
@@ -307,7 +307,7 @@ begin
 	
 -- This will change
 	--MAR_Input <= PC_Output;
-	ALU_OP <= "001";
+	--ALU_OP <= "001";
 
 	ALU_InputA <= ACC_Output;
 	ALU_InputB <= Z_Output;
@@ -321,7 +321,7 @@ begin
 		end if;
 	end process;
 	
-	CU_loop : process(CPU_CLK, dispData, IR_Output, Instruction, PC_Output, ACC_Output, i_Button, current_state) begin
+	CU_loop : process(CPU_CLK, dispData, IR_Output, Instruction, PC_Output, ACC_Output, i_Button, MBR_Output, ALU_Output, ALU_Overflow, current_state) begin
 		PC_Load <= '0';
 		PC_Clear <= '0';
 		MAR_Load <= '0';
@@ -444,7 +444,7 @@ begin
 			when ADD_13 =>
 				next_state <= ADD_14;
 			when ADD_14 =>
-				ALU_OP <= "001";
+				ALU_OP <= IR_Output(15 DOWNTO 12);
 				next_state <= ADD_15;
 			when ADD_15 =>
 				ACC_Input <= ALU_Output;
