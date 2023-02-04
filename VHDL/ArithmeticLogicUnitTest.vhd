@@ -44,7 +44,7 @@ ARCHITECTURE behavior OF ArithmeticLogicUnitTest IS
          S : IN  std_logic_vector(3 downto 0);
          A : IN  std_logic_vector(15 downto 0);
          B : IN  std_logic_vector(15 downto 0);
-         OVER : OUT  std_logic;
+         OVR : OUT  std_logic;
          F : OUT  std_logic_vector(15 downto 0)
         );
     END COMPONENT;
@@ -56,7 +56,7 @@ ARCHITECTURE behavior OF ArithmeticLogicUnitTest IS
    signal B : std_logic_vector(15 downto 0) := (others => '0');
 
  	--Outputs
-   signal OVER : std_logic;
+   signal OVR : std_logic;
    signal F : std_logic_vector(15 downto 0);
 	signal clock : std_logic;
    -- No clocks detected in port list. Replace <clock> below with 
@@ -71,7 +71,7 @@ BEGIN
           S => S,
           A => A,
           B => B,
-          OVER => OVER,
+          OVR => OVR,
           F => F
         );
 

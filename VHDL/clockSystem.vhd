@@ -41,7 +41,7 @@ architecture rtl of clockSystem is
 -- Choose a clock frequceny
 	constant CLK_Test : natural := 5000000;
 	constant CLK_50MHz : natural := 4;
-	constant CLK_FREQ : natural := CLK_Test;
+	constant CLK_FREQ : natural := CLK_50MHz;
 	
 	signal CLK_CNT : natural range 0 to CLK_FREQ;
 	signal CLK_PULSE : STD_LOGIC := '0';

@@ -169,17 +169,17 @@ architecture rtl of ControlUnit is
 	END COMPONENT;
 	
 	signal IR_Input : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
-	signal IR_Clear : STD_LOGIC := '0';
+	signal IR_Clear : STD_LOGIC := '1';
 	signal IR_Output : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal IR_Load : STD_LOGIC := '0';
 	
 	signal ACC_Input : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
-	signal ACC_Clear : STD_LOGIC := '0';
+	signal ACC_Clear : STD_LOGIC := '1';
 	signal ACC_Output : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal ACC_Load : STD_LOGIC := '0';
 	
 	signal Z_Input : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
-	signal Z_Clear : STD_LOGIC := '0';
+	signal Z_Clear : STD_LOGIC := '1';
 	signal Z_Output : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal Z_Load : STD_LOGIC := '0';
 	
@@ -344,6 +344,8 @@ begin
 					--next_state <= HLT_1;
 				--else
 					next_state <= FETCH_2;
+					--Z_Clear <= '1';
+					--ACC_Clear <= '1';
 				--end if;
 			when FETCH_2 =>
 				PC_Inc <= '1';
