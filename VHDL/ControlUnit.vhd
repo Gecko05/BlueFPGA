@@ -436,6 +436,7 @@ begin
 			when ADD_9 =>
 				next_state <= ADD_10;
 			when ADD_10 =>
+				MBR_Clear <= '1';
 				next_state <= ADD_11;
 			when ADD_11 =>
 				next_state <= ADD_12;
