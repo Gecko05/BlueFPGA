@@ -40,7 +40,8 @@ architecture rtl of clockSystem is
 -- Minor cycle freq is 50Mhz, Major cycle is 50/8MHz
 -- Choose a clock frequceny
 	constant CLK_Test : natural := 5000000;
-	constant CLK_50MHz : natural := 4;
+	constant CLK_50MHz : natural := 2;
+	constant CLK_100MHz : natural := 1;
 	constant CLK_FREQ : natural := CLK_50MHz;
 	
 	signal CLK_CNT : natural range 0 to CLK_FREQ;

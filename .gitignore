@@ -69,3 +69,4 @@ VHDL/RAMBlock/simulation/timing/wave_ncsim.sv
 VHDL/tmp/RAMBlock.lso
 VHDL/tmp/_cg/_dbg/xil_967.in
 VHDL/tmp/_cg/_dbg/xil_967.out
+.vscode/c_cpp_properties.json

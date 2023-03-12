@@ -33,6 +33,7 @@ entity ControlUnit is
 	Port(
 		CLK_100MHz : in std_logic;
 		Switch : in std_logic_vector(0 TO 0);
+		UART_RX : out std_logic;
 		o_LED : out std_logic_vector(0 TO 0);
 		SevenSegment : out std_logic_vector(0 TO 7);
 		SevenSegmentEnable : out std_logic_vector(0 TO 1)
@@ -183,6 +184,20 @@ architecture rtl of ControlUnit is
 	signal Z_Output : STD_LOGIC_VECTOR(15 DOWNTO 0) := STD_LOGIC_VECTOR(to_unsigned(0, 16));
 	signal Z_Load : STD_LOGIC := '0';
 	
+-- Debugging
+	COMPONENT RegReporter
+	PORT(
+		i_CLK : IN std_logic;
+		i_ACC : IN std_logic_vector(15 downto 0);
+		i_EN : IN std_logic;          
+		o_TX : OUT std_logic;
+		o_DONE : OUT std_logic
+		);
+	END COMPONENT;
+	
+	signal o_RR_EN : std_logic := '0';
+	signal i_RR_Done : std_logic := '0';
+	
 -- State
 	signal STATE : STD_LOGIC := '0'; -- Two States, 0 Fetch, 1 Execute
 	signal Instruction : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
@@ -297,6 +312,15 @@ begin
 		i_PCClear => PC_Clear,
 		i_PCLoad => PC_Load
 	);
+
+-- Debugging
+	Inst_RegReporter: RegReporter PORT MAP(
+		i_CLK => CLK_100MHz,
+		o_TX => UART_RX,
+		i_ACC => ACC_Output,
+		i_EN => o_RR_EN,
+		o_DONE => i_RR_Done
+	);
 	
 -- Board	
 	o_LED(0) <= CPU_CLK;
@@ -321,7 +345,7 @@ begin
 		end if;
 	end process;
 	
-	CU_loop : process(CPU_CLK, dispData, IR_Output, Instruction, PC_Output, ACC_Output, i_Button, MBR_Output, ALU_Output, ALU_Overflow, current_state) begin
+	CU_loop : process(CPU_CLK, dispData, IR_Output, Instruction, PC_Output, ACC_Output, i_Button, MBR_Output, ALU_Output, ALU_Overflow, current_state, i_RR_Done) begin
 		PC_Load <= '0';
 		PC_Clear <= '0';
 		MAR_Load <= '0';
@@ -334,16 +358,20 @@ begin
 		ACC_Load <= '0';
 		Z_Clear <= '0';
 		Z_Load <= '0';
+		o_RR_EN <= '0';
 		ACC_Input <= MBR_Output;
 		MAR_Input <= PC_Output;
 		PC_Input <= std_logic_vector(to_unsigned(0, 12));
 		case current_state is
 ----  FETCH  -------------------------
 			when FETCH_1 =>
+				o_RR_EN <= '1';
 				--if i_Button(1) = '1' then
 					--next_state <= HLT_1;
 				--else
+				if i_RR_Done = '1' then
 					next_state <= FETCH_2;
+				end if;
 					--Z_Clear <= '1';
 					--ACC_Clear <= '1';
 				--end if;

@@ -19,7 +19,7 @@ CONFIG VCCAUX = "3.3" ;
 #                                                 UART Interface                                                                                  #
 ################################################################################################################################################### 
     #NET "UART_TX"                    LOC = A8      |  IOSTANDARD = LVCMOS33 | DRIVE = 8 | SLEW = FAST ;
-    #NET "UART_RX"                    LOC = B8      |  IOSTANDARD = LVCMOS33 | DRIVE = 8 | SLEW = FAST ;
+    NET "UART_RX"                    LOC = B8      |  IOSTANDARD = LVCMOS33 | DRIVE = 8 | SLEW = FAST ;
 
 ###################################################################################################################################################
 #                                                   SPI Flash                                                                                     #
